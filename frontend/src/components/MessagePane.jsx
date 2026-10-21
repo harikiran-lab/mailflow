@@ -31,6 +31,7 @@ import SpamExplainModal from './SpamExplainModal.jsx';
 import { downloadEml } from '../utils/downloadEml.js';
 import { buildPrintDocument, openPrintWindow, printInWindow } from '../utils/printMessage.js';
 import AiResultBox from './AiResultBox.jsx';
+import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 const USE_DIV_RENDER = import.meta.env.VITE_EMAIL_DIV_RENDER === 'true';
@@ -2101,6 +2102,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           </div>
         )}
 
+        <PluginSlot name="message-capture-actions" ctx={{ message }} />
         {/* AI action results — pinned boxes above the message (#204) */}
         {Object.keys(aiResults).length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
@@ -2112,6 +2114,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
                 <AiResultBox
                   key={key}
                   result={result}
+                  message={message}
+                  actionId={key}
                   canRegen={!!action}
                   onRegen={() => action && runAiAction(action, { force: true })}
                   onDismiss={() => dismissAiResult(key)}

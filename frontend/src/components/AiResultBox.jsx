@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { renderMarkdown } from '../utils/renderMarkdown.js';
+import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { copyToClipboard } from '../utils/clipboard.js';
 
 // A pinned AI result box shown above the message (#204). Collapsible to keep
 // multiple results from crowding the view; offers regenerate and dismiss.
-export default function AiResultBox({ result, canRegen, onRegen, onDismiss }) {
+export default function AiResultBox({ result, canRegen, onRegen, onDismiss, message, actionId }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const loading = result.status === 'loading';
@@ -114,6 +115,7 @@ export default function AiResultBox({ result, canRegen, onRegen, onDismiss }) {
           dangerouslySetInnerHTML={{ __html: html }}
         />
       )}
+      {message && <PluginSlot name="ai-result-actions" ctx={{ message, result, actionId }} />}
       {!error && result.truncated && (
         <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
           {t('message.aiTruncated', { percent: Math.max(1, Math.floor((100 * result.truncated.shown) / result.truncated.total)) })}

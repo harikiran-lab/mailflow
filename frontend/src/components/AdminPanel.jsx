@@ -3260,6 +3260,7 @@ function IntegrationsTab() {
             )}
           </div>
 
+          <PluginSlot name="settings-apps" ctx={{}} />
           <CardDavCard />
         </div>
       )}
