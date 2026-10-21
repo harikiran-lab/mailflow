@@ -14,6 +14,7 @@ import MessageBodyView from './MessageBodyView.jsx';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import { isDarkTheme, canShowDark, showDark } from '../utils/darkScheme.js';
 import AiResultBox from './AiResultBox.jsx';
+import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
 import { BUILTIN_SUMMARIZE } from '../aiActions.js';
 import { formatDateTime } from '../utils/formatDate.js';
@@ -260,6 +261,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 'auto', flex: '0 0 auto' }}>{when}</span>
       </button>
 
+      {expanded && <PluginSlot name="message-capture-actions" ctx={{ message }} />}
       {expanded && (
         <div style={{ padding: '0 12px 12px' }}>
           {loading && (
@@ -279,6 +281,8 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
                   <AiResultBox
                     key={key}
                     result={result}
+                    message={message}
+                    actionId={key}
                     canRegen={!!action}
                     onRegen={() => action && ai.run(action, { force: true })}
                     onDismiss={() => ai.dismiss(key)}

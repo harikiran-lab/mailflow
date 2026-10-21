@@ -115,6 +115,15 @@ const dir = dirname(fileURLToPath(import.meta.url));
 // Two locales sharing a value is only allowed if both appear in the same group.
 // Any unlisted pair will still fail.
 const SAME_VALUE_ALLOWED = {
+  'notetrace.name': 'any', // NoteTrace is a product name.
+  'notetrace.connected': [['es', 'ptBR']], // Natural shared Spanish/Portuguese wording.
+  'notetrace.disconnect': [['es', 'ptBR']],
+  'notetrace.server': [['es', 'ptBR']],
+  'notetrace.token': [['es', 'ptBR']],
+  'notetrace.connect': [['es', 'ptBR']],
+  'notetrace.include': [['es', 'ptBR']],
+  'notetrace.title': [['es', 'ptBR']],
+  'notetrace.cancel': [['es', 'ptBR']],
   // ── Universal placeholders / brand names (all locales share) ───────────────
   'admin.about.kofi':                       'any', // Ko-fi — brand name, same everywhere
   'admin.about.githubSponsors':             'any', // GitHub Sponsors — product name, same everywhere
