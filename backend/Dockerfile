@@ -17,6 +17,7 @@ ARG APP_VERSION
 ENV BUILD_SHA=${BUILD_SHA:-dev}
 
 COPY --from=deps /app/node_modules ./node_modules
+COPY shared/ /shared/
 COPY . /repo
 RUN cp /repo/backend/package.json ./package.json && \
     cp -R /repo/backend/src ./src && \

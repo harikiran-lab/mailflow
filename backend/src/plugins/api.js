@@ -15,6 +15,8 @@
 // other users' data, the Express app, filesystem/network. Mail actions are exposed only as narrow,
 // pre-bound capabilities (apply a label, summarize a message, …), never as the raw manager.
 
+export { captureStatus, connectCapture, disconnectCapture } from '../services/captureDestination.js';
+export { prepareEmailCapture, saveEmailCapture, emailCaptureStatus } from '../services/emailCapture.js';
 import { getMailEngine } from './mailEngine.js';
 import * as labelsWrite from '../services/labels.js';
 import { archiveInboxCopy as _archiveInboxCopy } from '../services/archiveInbox.js';

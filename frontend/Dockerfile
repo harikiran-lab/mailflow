@@ -15,6 +15,7 @@ ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 RUN npm ci
 
 COPY . /repo
+COPY shared/ /shared/
 RUN cp -R /repo/frontend/. /app/
 
 ARG VITE_BUILD_SHA
