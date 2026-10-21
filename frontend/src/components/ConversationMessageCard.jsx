@@ -243,11 +243,12 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         borderRadius: 6, marginBottom: 8, background: 'var(--bg-primary)',
       }}
     >
+      <div style={{ display: 'flex', alignItems: 'center' }}>
       <button
         onClick={() => onToggle(message.id)}
         aria-expanded={expanded}
         style={{
-          width: '100%', display: 'flex', alignItems: 'baseline', gap: 8, textAlign: 'left',
+          width: '100%', flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 8, textAlign: 'left',
           background: 'none', border: 'none', padding: '10px 12px', cursor: 'pointer',
           color: 'var(--text-primary)', font: 'inherit',
         }}
@@ -261,7 +262,10 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 'auto', flex: '0 0 auto' }}>{when}</span>
       </button>
 
-      {expanded && <PluginSlot name="message-capture-actions" ctx={{ message }} />}
+      {expanded && <div style={{ paddingRight: 12 }}>
+        <PluginSlot name="message-toolbar-actions" ctx={{ message }} />
+      </div>}
+      </div>
       {expanded && (
         <div style={{ padding: '0 12px 12px' }}>
           {loading && (

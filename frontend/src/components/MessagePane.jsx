@@ -1611,6 +1611,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
 
         <div style={{ flex: 1 }} />
 
+        <PluginSlot name="message-toolbar-actions" ctx={{ message }} />
         {isMobile ? (
           <div style={{ position: 'relative' }} ref={moreMenuRef}>
             <PaneBtn onClick={() => setShowMoreMenu(v => !v)} title={t('message.more')}>
@@ -2102,7 +2103,6 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
           </div>
         )}
 
-        <PluginSlot name="message-capture-actions" ctx={{ message }} />
         {/* AI action results — pinned boxes above the message (#204) */}
         {Object.keys(aiResults).length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
