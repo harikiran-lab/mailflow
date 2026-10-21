@@ -4,10 +4,12 @@ import { registerSlot, registerCollector, registerRuntime, registerPluginMeta } 
 import { useStore } from '../../store/index.js';
 import { api } from '../../utils/api.js';
 import { resolveContextMenuMessage } from '../../utils/contextMenuPolicy.js';
-import { captureRequest, openCapture } from './api.js';
+import { openCapture } from './api.js';
 import NoteTraceSettings from './NoteTraceSettings.jsx';
 import CaptureModal from './CaptureModal.jsx';
-import { button } from './styles.js';
+import MessageActions from './MessageActions.jsx';
+import { AiIcon } from './Icons.jsx';
+import './styles.css';
 
 function CaptureRuntime() {
   const userId = useStore(s => s.user?.id);
@@ -20,48 +22,19 @@ function CaptureRuntime() {
   return opening && opening.userId === userId ? <CaptureModal key={opening.id} {...opening} onClose={() => setOpening(null)} /> : null;
 }
 
-function MessageActions({ message }) {
-  const { t } = useTranslation();
-  const [ai, setAi] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const [links, setLinks] = useState([]);
-  useEffect(() => {
-    let active = true;
-    api.ai.status().then(s => { if (active) setAi(s.enabled && s.features?.summarize); }).catch(() => {});
-    captureRequest('/status').then(s => { if (active) setConnected(s.connected); }).catch(() => {});
-    return () => { active = false; };
-  }, []);
-  useEffect(() => {
-    let active = true;
-    const refresh = () => captureRequest(`/messages/${encodeURIComponent(message.id)}`).then(data => {
-      if (active) setLinks(data.entries.filter(e => e.status !== 'removed').map(e => e.url));
-    }).catch(() => {});
-    refresh();
-    window.addEventListener('mailflow:notetrace-saved', refresh);
-    return () => { active = false; window.removeEventListener('mailflow:notetrace-saved', refresh); };
-  }, [message.id]);
-  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0' }}>
-    <button style={button} onClick={() => openCapture(message, 'note')}>{t('notetrace.saveEmail')}</button>
-    <button style={button} onClick={() => openCapture(message, 'task')}>{t('notetrace.createTask')}</button>
-    {ai && connected && <button style={button} onClick={() => openCapture(message, 'combined')}>{t('notetrace.prepareBoth')}</button>}
-    {!connected && <small>{t('notetrace.connectFirst')}</small>}
-    {links.map(link => <a key={link} href={link} target="_blank" rel="noopener noreferrer">{t('notetrace.alreadySaved')}</a>)}
-  </div>;
-}
-
-function AiActions({ message, result, actionId }) {
+export function AiActions({ message, result, actionId }) {
   const { t } = useTranslation();
   if (result.status !== 'done' || !result.text) return null;
-  return <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-    <button style={button} onClick={() => openCapture(message, 'summary', result)}>{t('notetrace.saveResult')}</button>
-    {actionId !== 'summarize' && <button style={button} onClick={() => openCapture(message, 'actions', result)}>{t('notetrace.saveActions')}</button>}
+  return <div className="notetrace-ui nt-ai-actions">
+    <button className="nt-button nt-ai-button" onClick={() => openCapture(message, 'summary', result)}><AiIcon />{t('notetrace.saveResult')}</button>
+    {actionId !== 'summarize' && <button className="nt-button nt-ai-button" onClick={() => openCapture(message, 'actions', result)}><AiIcon />{t('notetrace.saveActions')}</button>}
   </div>;
 }
 
 registerPluginMeta('notetrace', { settingsLocation: { tab: 'integrations', subtab: 'apps', labelKey: 'notetrace.settings' } });
 registerRuntime({ pluginId: 'notetrace', component: CaptureRuntime });
 registerSlot('settings-apps', { pluginId: 'notetrace', render: () => <NoteTraceSettings /> });
-registerSlot('message-capture-actions', { pluginId: 'notetrace', render: ctx => <MessageActions key={ctx.message.id} {...ctx} /> });
+registerSlot('message-toolbar-actions', { pluginId: 'notetrace', render: ctx => <MessageActions key={ctx.message.id} {...ctx} /> });
 registerSlot('ai-result-actions', { pluginId: 'notetrace', render: ctx => <AiActions {...ctx} /> });
 registerCollector('context-menu-actions', { pluginId: 'notetrace', build: ({ message, variant, t }) => [
   { label: t('notetrace.saveEmail'), action: async () => openCapture(await resolveContextMenuMessage(message, variant, api.resolveMessage), 'note') },

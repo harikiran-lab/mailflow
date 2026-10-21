@@ -15,6 +15,10 @@ Use an address reachable by the MailFlow backend. If NoteTrace is behind a separ
 
 ## Capture
 
+Open the **NoteTrace** notebook dropdown in the message header (also available on expanded conversation messages). A small dot on its icon means the message has saved captures; open the menu to follow their links. Captures with the same destination appear once.
+
+The review dialog starts with notes and tasks collapsed. Select items with their checkboxes, then click an item's title to edit it; opening another item closes the previous editor while preserving edits. The **Selected email / Entire conversation** toggle changes the source for a fresh capture. Existing AI results keep their original source scope. Due dates and reminders remain visible in collapsed task rows, and validation opens an item that needs attention.
+
 - **Save email to NoteTrace** opens an editable Markdown note. HTML formatting is converted; scripts, hidden content, remote images, and attachments are excluded.
 - **Create NoteTrace task** lets you edit a task, due date, and optional reminder without calling AI.
 - **Prepare summary & tasks** uses MailFlow's configured AI and respects its existing per-user permissions. Review the Markdown summary, task selection, date evidence, time zones, and reminders before saving.
