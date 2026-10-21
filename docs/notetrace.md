@@ -2,7 +2,7 @@
 
 The optional NoteTrace plugin saves reviewed emails and AI results to your own NoteTrace account. Email notes and summaries are Markdown. Each task becomes a one-item native NoteTrace checklist, visible in Tasks, with its own due date and reminder.
 
-Deploy the matching [NoteTrace capture API](https://github.com/harikiran-lab/notetrace/pull/13) before enabling this plugin.
+Deploy the matching [NoteTrace capture API](https://github.com/TraceApps/notetrace/pull/43) before enabling this plugin. Both upstream changes are proposals; use builds containing the feature until they are accepted and released.
 
 ## Connect
 
