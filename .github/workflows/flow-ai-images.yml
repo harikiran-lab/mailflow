@@ -4,13 +4,33 @@ on:
   push:
     branches: ['feat/flow-ai']
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Branch, tag, or commit to build'
+        required: true
+        default: 'feat/flow-ai'
+        type: string
+      image_tag:
+        description: 'Published image tag (lowercase; e.g. flow-ai or staging)'
+        required: true
+        default: 'flow-ai'
+        type: string
+      platforms:
+        description: 'CPU platforms'
+        required: true
+        default: 'linux/amd64,linux/arm64'
+        type: choice
+        options:
+          - 'linux/amd64,linux/arm64'
+          - 'linux/amd64'
+          - 'linux/arm64'
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: flow-ai-images-${{ github.ref }}
+  group: flow-ai-images-${{ inputs.image_tag || 'flow-ai' }}
   cancel-in-progress: true
 
 jobs:
@@ -23,6 +43,22 @@ jobs:
         service: [backend, frontend]
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+      - name: Validate tag and identify source
+        id: source
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag || 'flow-ai' }}
+        run: |
+          if [[ ! "$IMAGE_TAG" =~ ^[a-z0-9_][a-z0-9_.-]{0,111}$ ]]; then
+            echo 'Image tag must be 1-112 lowercase letters, digits, underscores, dots, or hyphens, starting with a letter, digit, or underscore.' >&2
+            exit 1
+          fi
+          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./backend/package.json').version")-flow-ai" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -35,21 +71,50 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/mailflow-${{ matrix.service }}
           tags: |
-            type=raw,value=flow-ai
-            type=sha,prefix=flow-ai-
+            type=raw,value=${{ steps.source.outputs.tag }}
+            type=raw,value=${{ steps.source.outputs.tag }}-${{ steps.source.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ steps.source.outputs.sha }}
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./${{ matrix.service }}/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           build-args: |
-            BUILD_SHA=${{ github.sha }}
-            VITE_BUILD_SHA=${{ github.sha }}
-            APP_VERSION=4.0.4-flow-ai
+            BUILD_SHA=${{ steps.source.outputs.sha }}
+            VITE_BUILD_SHA=${{ steps.source.outputs.sha }}
+            APP_VERSION=${{ steps.source.outputs.version }}
           cache-from: type=gha,scope=flow-ai-${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=flow-ai-${{ matrix.service }}
+      - name: Deployment summary
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          SERVICE: ${{ matrix.service }}
+          IMAGE_TAG: ${{ steps.source.outputs.tag }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          SHORT_SHA: ${{ steps.source.outputs.short_sha }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          IMAGE="ghcr.io/${REPO_OWNER,,}/mailflow-$SERVICE"
+          {
+            echo "### Published $SERVICE"
+            echo "Source commit: \`$SOURCE_SHA\`"
+            echo ""
+            echo "- Image: \`$IMAGE:$IMAGE_TAG\`"
+            echo "- Commit tag: \`$IMAGE:$IMAGE_TAG-$SHORT_SHA\`"
+            echo "- Digest: \`$DIGEST\`"
+            echo ""
+            echo 'After both image jobs succeed, run these commands in your MailFlow server directory:'
+            echo '```sh'
+            echo "export MAILFLOW_FLOW_AI_TAG=$IMAGE_TAG"
+            echo 'docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml pull'
+            echo 'docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml up -d'
+            echo 'docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml ps'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
