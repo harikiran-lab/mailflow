@@ -11,6 +11,6 @@ export async function captureRequest(path, body, method = body ? 'POST' : 'GET')
   return data;
 }
 
-export function openCapture(message, mode, result = null) {
-  window.dispatchEvent(new CustomEvent('mailflow:notetrace-capture', { detail: { message, mode, result } }));
+export function openCapture(message, mode, result = null, prepared = null) {
+  window.dispatchEvent(new CustomEvent('mailflow:notetrace-capture', { detail: { message, mode, result, prepared } }));
 }

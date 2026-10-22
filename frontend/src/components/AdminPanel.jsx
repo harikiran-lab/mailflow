@@ -35,6 +35,7 @@ import { getEffectiveShortcuts, getGroupedActions, getShortcutConflicts, shortcu
 import { isValidForwardAddress } from '../utils/ruleActions.js';
 import { folderParentLabel } from '../utils/folderDisplay.js';
 import AdminUserEditor from './AdminUserEditor.jsx';
+import DeveloperSettings from './DeveloperSettings.jsx';
 import { formatRelativeTime, daysSince } from '../utils/relativeTime.js';
 import { formatDateTime, formatDay, formatTime } from '../utils/formatDate.js';
 import { htmlLang } from '../utils/browserLanguage.js';
@@ -3261,6 +3262,7 @@ function IntegrationsTab() {
           </div>
 
           <PluginSlot name="settings-apps" ctx={{}} />
+          <DeveloperSettings />
           <CardDavCard />
         </div>
       )}

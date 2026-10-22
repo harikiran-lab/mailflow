@@ -6,6 +6,7 @@ import { createRequestSignal, parseJson, readLimited, readSseData, sanitizeText 
 import { completeCodexText, streamCodexResponses } from './openaiCodexResponses.js';
 import { getCodexAccess, getCodexStatus } from './openaiCodexAuth.js';
 import { aiEnabledForNewUser, setAiEnabledForNewUser } from './aiNewUsers.js';
+import { consumeToolStream, codexToolTurn } from './aiToolTransport.js';
 
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
@@ -60,6 +61,8 @@ export function normalizeAiConfig(raw = {}) {
     features: {
       compose: raw.features?.compose !== false,
       summarize: raw.features?.summarize !== false,
+      ...(Object.hasOwn(raw.features || {}, 'flow') ? { flow: raw.features.flow === true } : {}),
+      ...(Object.hasOwn(raw.features || {}, 'inbox') ? { inbox: raw.features.inbox === true } : {}),
     },
   };
 }
@@ -338,6 +341,26 @@ export function createAiProvider({
     }
   }
 
+  async function toolTurn(messages, tools, { signal, onDelta } = {}) {
+    const config = await requireSelectedConfig();
+    if (config.provider === AI_PROVIDER_CHATGPT) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const credentials = await getCodexAccessFn(attempt ? { forceRefresh: true } : {});
+        try { return await codexToolTurn({ credentials, model: config.chatgptConfig.model, messages, tools, signal, onDelta, fetchFn }); }
+        catch (error) { if (attempt || error.status !== 401) throw error; }
+      }
+    }
+    const apiKey = apiKeyCredential(config);
+    const request = await openProviderRequest(fetchFn, `${config.apiKeyConfig.baseUrl}/chat/completions`, {
+      method: 'POST', headers: apiKeyHeaders(apiKey),
+      body: JSON.stringify({ model: config.apiKeyConfig.model, messages, tools, stream: true }),
+    }, { signal, timeoutMs: 120000 });
+    try {
+      if (!request.response.ok) throw providerError(request.response.status, await readLimited(request.response, ERROR_BODY_LIMIT_BYTES), [apiKey]);
+      return await consumeToolStream(request.response, { signal: request.signal, onDelta });
+    } finally { request.cleanup(); }
+  }
+
   async function* streamChat(messages, options = {}) {
     const config = await requireSelectedConfig();
     if (config.provider === AI_PROVIDER_API_KEY) {
@@ -410,6 +433,7 @@ export function createAiProvider({
     testAiProvider,
     streamChat,
     completeText,
+    toolTurn,
   };
 }
 
@@ -424,3 +448,4 @@ export const getAiStatus = defaultProvider.getAiStatus;
 export const testAiProvider = defaultProvider.testAiProvider;
 export const streamChat = defaultProvider.streamChat;
 export const completeText = defaultProvider.completeText;
+export const toolTurn = defaultProvider.toolTurn;

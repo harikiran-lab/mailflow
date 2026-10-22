@@ -1,3 +1,5 @@
+import { bindMailCapability } from '../services/mailCapabilities.js';
+import { queueEvent } from '../services/developerAccess.js';
 import nodemailer from 'nodemailer';
 import { randomBytes } from 'crypto';
 import { Router } from 'express';
@@ -203,6 +205,7 @@ router.get('/messages/:id/reply-draft', async (req, res) => {
 // markers. The composer refreshes its own tab; this reaches the user's other tabs and devices.
 // Best-effort: the draft is already saved or deleted, and a failed notice only delays a marker.
 function noteDraftsChanged(userId, accountId) {
+  queueEvent(userId, accountId, 'draft.changed', {}).catch(err => console.warn('Draft webhook enqueue failed:', err.message));
   try {
     imapManager.broadcast({ type: 'drafts_changed', accountId }, userId);
   } catch (err) {
@@ -417,7 +420,7 @@ export async function deleteSentDraft(userId, account, { uid, folder, accountId 
   }
 }
 
-router.post('/draft', async (req, res) => {
+async function handleCapabilityDraft(req, res) {
   const { accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml = false, quotedBody, quotedBodyHtml, editedSignature, existingUid, existingFolder, existingAccountId, inReplyTo, references } = req.body;
   if (!accountId) return res.status(400).json({ error: 'accountId required' });
 
@@ -494,7 +497,9 @@ router.post('/draft', async (req, res) => {
     console.error('Save draft failed:', err.message);
     res.status(err.status || 500).json({ error: err.message || 'Failed to save draft' });
   }
-});
+}
+router.post('/draft', handleCapabilityDraft);
+bindMailCapability('draft', handleCapabilityDraft);
 
 router.delete('/draft/:uid', async (req, res) => {
   const uid = parseInt(req.params.uid, 10);

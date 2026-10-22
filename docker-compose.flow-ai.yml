@@ -1,0 +1,8 @@
+# Use with the pre-built image compose file:
+# docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml pull
+# docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml up -d
+services:
+  backend:
+    image: ghcr.io/harikiran-lab/mailflow-backend:flow-ai
+  frontend:
+    image: ghcr.io/harikiran-lab/mailflow-frontend:flow-ai

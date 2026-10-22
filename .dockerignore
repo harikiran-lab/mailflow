@@ -6,3 +6,6 @@
 certs
 *.local
 .git
+**/npm-cache
+*-tests.json
+*-tests.log

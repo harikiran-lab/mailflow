@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import AccountMark from './AccountMark.jsx';
+import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { unreadBadge } from '../utils/unreadBadge.js';
@@ -276,7 +277,7 @@ export default function Sidebar() {
     accountsReady,
     sidebarWidth,
     isSidebarResizing,
-    showContacts, setShowContacts,
+    showContacts, setShowContacts, pluginView,
   } = useStore();
 
   const isMobile = useMobile();
@@ -916,13 +917,14 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav data-mailbox-sidebar="" style={{ flex: 1, overflow: 'hidden auto', padding: '4px 8px' }}>
+        <PluginSlot name="sidebar-navigation" ctx={{ collapsed: sidebarCollapsed }} />
         {/* Unified Inbox — only shown with 2+ enabled accounts */}
         {accounts.filter(a => a.enabled).length >= 2 && (
           <NavItem
             mailboxRow
             icon={ICONS.inbox}
             label={t('sidebar.allInboxes')}
-            active={isUnified && selectedFolder !== SNOOZED_FOLDER && !showContacts}
+            active={isUnified && selectedFolder !== SNOOZED_FOLDER && !showContacts && !pluginView}
             collapsed={sidebarCollapsed}
             badge={unreadCounts.total}
             badgeStale={!unreadCounts.complete}
@@ -938,7 +940,7 @@ export default function Sidebar() {
             mailboxRow
             icon={ICONS.snoozed}
             label={t('sidebar.snoozed')}
-            active={isUnified && selectedFolder === SNOOZED_FOLDER && !showContacts}
+            active={isUnified && selectedFolder === SNOOZED_FOLDER && !showContacts && !pluginView}
             collapsed={sidebarCollapsed}
             onClick={() => setSelectedAccount(null, SNOOZED_FOLDER)}
           />
@@ -1837,7 +1839,7 @@ export default function Sidebar() {
         <>
           <div style={{ padding: '4px 8px', display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
             <button
-              onClick={() => { setShowContacts(!showContacts); if (isMobile) setMobileSidebarOpen(false); }}
+              onClick={() => { setShowContacts(!showContacts && !pluginView); if (isMobile) setMobileSidebarOpen(false); }}
               title={t('contacts.title')}
               style={{
                 width: 28, height: 28, borderRadius: 7,
@@ -1847,8 +1849,8 @@ export default function Sidebar() {
                 color: showContacts ? 'var(--accent)' : 'var(--text-tertiary)',
                 transition: 'background 0.1s, color 0.1s',
               }}
-              onMouseEnter={e => { if (!showContacts) { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
-              onMouseLeave={e => { if (!showContacts) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
+              onMouseEnter={e => { if (!showContacts && !pluginView) { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+              onMouseLeave={e => { if (!showContacts && !pluginView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
             >
               {ICONS.contacts}
             </button>

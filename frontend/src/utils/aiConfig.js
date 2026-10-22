@@ -65,6 +65,8 @@ export function normalizeAiForm(raw = {}) {
     features: {
       compose: raw.features?.compose !== false,
       summarize: raw.features?.summarize !== false,
+      ...(Object.hasOwn(raw.features || {}, 'flow') ? { flow: raw.features.flow === true } : {}),
+      ...(Object.hasOwn(raw.features || {}, 'inbox') ? { inbox: raw.features.inbox === true } : {}),
     },
     newUsersEnabled: raw.newUsersEnabled !== false,
   };

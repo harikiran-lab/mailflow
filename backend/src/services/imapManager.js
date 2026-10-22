@@ -4589,6 +4589,7 @@ export class ImapManager {
         // THIS account (GTD's handler is active only when gtd_enabled), so a mailbox with no such
         // plugin collects nothing and issues no extra queries — identical to the pre-plugin gate.
         const wantsInboxIngest = folder === 'INBOX' && await pluginRegistry.hasActiveAsync('inboxIngest', { account });
+        const wantsMailEvents = folder === 'INBOX' && await pluginRegistry.hasActiveAsync('mailIngested', { account });
         const newInboxIds = [];
         const ingestDeletedIds = new Set();
 
@@ -4733,7 +4734,7 @@ export class ImapManager {
               // is not a gate here — the plugin decides). The unread-only push below still drives
               // notifications. Gated on wantsInboxIngest so a mailbox with no ingest plugin builds
               // nothing extra.
-              if (wantsInboxIngest) {
+              if (wantsInboxIngest || wantsMailEvents) {
                 newInboxIds.push(result.rows[0].id);
               }
               if (!parsed.isRead) {
@@ -5085,6 +5086,9 @@ export class ImapManager {
           await pluginRegistry.runHook('inboxIngest', {
             mgr: this.pluginFacade, account, newInboxIds, deletedIds: ingestDeletedIds,
           });
+        }
+        if (wantsMailEvents && newInboxIds.length > 0) {
+          await pluginRegistry.runHook('mailIngested', { account, newInboxIds });
         }
         // Reconcile the cached unread badge from actual rows now that this pass's inserts, flag
         // updates, and any INBOX rule/block-list moves have all landed. The provisional

@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { query } from './db.js';
+import { queueEvent } from './developerAccess.js';
 import { loadOwnedMessage, getOwnedAccount, getAccountAddresses } from './mailAccess.js';
 import { getMailEngine } from '../plugins/mailEngine.js';
 import * as storage from '../plugins/storage.js';
@@ -156,5 +157,7 @@ export async function saveEmailCapture(userId, input) {
     await storage.put('notetrace', `saved:${userId}:${stored.value.source.id}:${entries[i].key}`, { ownerId: userId, value: entry });
     if (input.entries[i].key !== entries[i].key) await storage.put('notetrace', `saved:${userId}:${stored.value.source.id}:${input.entries[i].key}`, { ownerId: userId, value: entry });
   }
+  if (!result.replayed) queueEvent(userId, owned.account_id, 'notetrace.captured', { message_id: owned.id, count: result.entries.length })
+    .catch(err => console.warn('NoteTrace webhook enqueue failed:', err.message));
   return result;
 }

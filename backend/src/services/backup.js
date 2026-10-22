@@ -20,6 +20,8 @@ export const BACKUP_SCOPES = ['setup', 'full'];
 //
 // The setup: what it takes to bring this installation up again somewhere else.
 export const SETUP_TABLES = [
+  'api_tokens',
+  'webhook_subscriptions',
   'account_aliases',
   'address_books',
   'ai_codex_credentials',
@@ -47,9 +49,9 @@ export const SETUP_TABLES = [
   'users',
 ];
 // The local copy of the mail on the IMAP servers. Synced again after a restore that leaves it out.
-export const MAIL_CACHE_TABLES = ['folders', 'messages', 'unfetchable_uids'];
+export const MAIL_CACHE_TABLES = ['folders', 'messages', 'unfetchable_uids', 'ai_embeddings'];
 // Short-lived tokens that are worthless minutes later.
-export const TRANSIENT_TABLES = ['ai_codex_device_flows', 'email_otp_tokens', 'password_reset_tokens'];
+export const TRANSIENT_TABLES = ['ai_codex_device_flows', 'email_otp_tokens', 'password_reset_tokens', 'action_proposals', 'integration_jobs', 'webhook_deliveries'];
 // The record of which migrations shaped the schema the rows are written back into.
 export const SCHEMA_TABLES = ['schema_migrations'];
 

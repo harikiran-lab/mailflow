@@ -4,7 +4,7 @@ import { captureRequest } from './api.js';
 import { localDateTime, validZone, zonedInstant } from '../../../../shared/captureTime.js';
 import { Chevron, NoteIcon } from './Icons.jsx';
 
-export default function CaptureModal({ message, mode, result, onClose }) {
+export default function CaptureModal({ message, mode, result, prepared, onClose }) {
   const { t } = useTranslation();
   const [scope, setScope] = useState('message');
   const [draft, setDraft] = useState(null);
@@ -33,7 +33,7 @@ export default function CaptureModal({ message, mode, result, onClose }) {
     const gen = ++generation.current;
     setBusy(true); setError(''); setDraft(null); setEntries([]); setSaved(null); setExpanded(null);
     try {
-      const data = await captureRequest('/preview', { message_id: message.id, mode, scope: selectedScope,
+      const data = prepared && selectedScope === (prepared.scope || 'message') ? prepared : await captureRequest('/preview', { message_id: message.id, mode, scope: selectedScope,
         result_text: result?.text, truncated: result?.truncated || null });
       if (gen !== generation.current) return;
       setDraft(data);
@@ -41,7 +41,7 @@ export default function CaptureModal({ message, mode, result, onClose }) {
         reminder_choice: e.reminder_at ? 'set' : e.needs_time ? 'choose' : 'none' })));
     } catch (e) { if (gen === generation.current) setError(e.message); }
     finally { if (gen === generation.current) setBusy(false); }
-  }, [message.id, mode, result]);
+  }, [message.id, mode, result, prepared]);
   useEffect(() => { prepare('message'); }, [prepare]);
   const change = (index, patch) => setEntries(es => es.map((e, i) => i === index ? { ...e, ...patch } : e));
   const save = async () => {
