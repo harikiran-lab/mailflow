@@ -1921,6 +1921,7 @@
     "show": "Pokaż prawy pasek boczny"
   },
   "gtd": {
+    "oldestLabeledAge": "{{state}}: wiek najstarszej wiadomości z tą etykietą (dni): {{count}}",
     "title": "GTD",
     "inbox": "Odebrane",
     "waiting": "Oczekujące",
@@ -1934,6 +1935,8 @@
     "tabEmpty": "Nie ma tu jeszcze żadnych elementów",
     "removeFrom": "Usuń ze stanu {{state}}",
     "classified": "Zastosowano etykietę",
+    "classifiedMany": "Oznaczono {{count}} jako {{state}}",
+    "classifiedSome": "Oznaczono {{count}} z {{total}} jako {{state}}",
     "classifyFailed": "Nie udało się zastosować etykiety",
     "removed": "Usunięto etykietę",
     "removeFailed": "Nie udało się usunąć etykiety",
@@ -1941,6 +1944,7 @@
     "done": "Oznacz jako wykonane",
     "doneFailed": "Nie udało się oznaczyć jako gotowe",
     "doneArchiveFailed": "Oznaczono jako gotowe, ale archiwizacja nie powiodła się — wiadomość nadal znajduje się w skrzynce odbiorczej",
+    "doneThreadRemains": "Nie udało się usunąć niektórych wiadomości z tej rozmowy, więc pozostaje ona w swojej sekcji GTD",
     "state": {
       "todo": "Do zrobienia",
       "watch": "Do obserwowania",
