@@ -1,0 +1,11 @@
+# Use with the pre-built image compose file:
+# docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml pull
+# docker compose -f docker-compose.ghcr.yml -f docker-compose.flow-ai.yml up -d
+services:
+  backend:
+    image: ghcr.io/${MAILFLOW_IMAGE_OWNER:-harikiran-lab}/mailflow-backend:${MAILFLOW_FLOW_AI_TAG:-flow-ai}
+    environment:
+      MCP_ALLOWED_ORIGINS: ${MCP_ALLOWED_ORIGINS:-}
+      WEBHOOK_ALLOWED_PRIVATE_ORIGINS: ${WEBHOOK_ALLOWED_PRIVATE_ORIGINS:-}
+  frontend:
+    image: ghcr.io/${MAILFLOW_IMAGE_OWNER:-harikiran-lab}/mailflow-frontend:${MAILFLOW_FLOW_AI_TAG:-flow-ai}
