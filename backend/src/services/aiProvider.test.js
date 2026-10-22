@@ -168,6 +168,12 @@ describe('Allow AI for new users', () => {
 });
 
 describe('configuration persistence', () => {
+  it('preserves separately managed Flow switches when an older provider form is saved', async () => {
+    const initial = { enabled: true, provider: AI_PROVIDER_API_KEY, apiKeyConfig: { baseUrl: 'https://api.example/v1', model: 'm' }, features: { flow: true, inbox: true } };
+    const { provider, settings } = factory({ initial });
+    await provider.saveAiConfig({ ...initial, features: { compose: false, summarize: true, flow: false, inbox: false } });
+    expect(settings.read().features).toEqual({ compose: false, summarize: true, flow: true, inbox: true });
+  });
   it.each([MASKED_API_KEY, ''])(
     'preserves the encrypted API key while switching to ChatGPT with input %j',
     async (apiKeyInput) => {

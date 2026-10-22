@@ -13,7 +13,7 @@ import { createToken,developerPolicy,hashToken,createWebhook,queueEvent,deliverW
 import { ownedAccounts,ownedMessage,searchMail,readMail,bindMailCapability } from './mailCapabilities.js';
 import { prepareAction,confirmAction } from './actionProposals.js';
 import { availableTools,executeMailTool } from './mailTools.js';
-import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow } from './flowAI.js';
+import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh } from './flowAI.js';
 import { invalidateActivationCache } from '../plugins/activation.js';
 import { externalRoutes,mcpRoutes } from '../routes/developer.js';
 
@@ -23,13 +23,14 @@ beforeAll(async()=>{
   process.env.ENCRYPTION_KEY='ab'.repeat(32);
   state.db=new PGlite();
   await state.db.exec(`CREATE TABLE users(id uuid primary key,preferences jsonb default '{}',ai_enabled boolean default true,is_admin boolean default false);
-    CREATE TABLE email_accounts(id uuid primary key,user_id uuid references users(id) ON DELETE CASCADE,name text,email_address text,enabled boolean default true,include_in_unified_inbox boolean default true,sort_order integer default 0,created_at timestamptz default now());
-    CREATE TABLE messages(id uuid primary key,account_id uuid references email_accounts(id) ON DELETE CASCADE,uid bigint,folder text,message_id text,subject text,from_email text,from_name text,date timestamptz,snippet text,body_text text,is_read boolean default false,is_starred boolean default false,is_deleted boolean default false,category text,thread_key text,thread_references text,synced_at timestamptz default now());
+    CREATE TABLE email_accounts(id uuid primary key,user_id uuid references users(id) ON DELETE CASCADE,name text,email_address text,enabled boolean default true,include_in_unified_inbox boolean default true,sort_order integer default 0,folder_mappings jsonb default '{}',created_at timestamptz default now());
+    CREATE TABLE messages(id uuid primary key,account_id uuid references email_accounts(id) ON DELETE CASCADE,uid bigint,folder text,message_id text,subject text,from_email text,from_name text,date timestamptz,snippet text,body_text text,is_read boolean default false,is_starred boolean default false,is_deleted boolean default false,category text,thread_id text,thread_key text GENERATED ALWAYS AS (COALESCE(thread_id,id::text)) STORED,thread_references text,synced_at timestamptz default now());
     CREATE TABLE folders(account_id uuid references email_accounts(id),path text,name text,special_use text,uid_validity bigint);
     CREATE TABLE system_settings(key text primary key,value text,updated_at timestamptz default now());
     CREATE TABLE plugin_account_config(plugin_id text,account_id uuid references email_accounts(id) ON DELETE CASCADE,config jsonb,updated_at timestamptz default now(),primary key(plugin_id,account_id));
     CREATE TABLE plugin_data(plugin_id text,key text,owner_id uuid references users(id) ON DELETE CASCADE,value jsonb,blob bytea,blob_mime text,visibility text,updated_at timestamptz default now(),primary key(plugin_id,key));`);
   await state.db.exec(await readFile(new URL('../../migrations/0069_flow_integrations.sql',import.meta.url),'utf8'));
+  await state.db.exec(await readFile(new URL('../../migrations/0070_flow_reassessment.sql',import.meta.url),'utf8'));
   bindMailCapability('read',async(req,res)=>{state.mutate(req.body);await query('UPDATE messages SET is_read=$1 WHERE id=$2',[req.body.read,req.params.id]);res.json({ok:true});});
   bindMailCapability('draft',async(req,res)=>{state.mutate(req.body);res.json({uid:10,folder:'Drafts'});});
   const app=express();app.use(express.json());app.use('/api/v1',externalRoutes);app.use('/api/mcp',mcpRoutes);
@@ -38,11 +39,12 @@ beforeAll(async()=>{
 afterAll(async()=>{await new Promise(resolve=>http?.close(resolve));await state.db?.close();});
 beforeEach(async()=>{
   vi.clearAllMocks();invalidateActivationCache(U);invalidateActivationCache(V);
+  state.complete.mockReset().mockResolvedValue('{"items":[]}');
   await state.db.exec('TRUNCATE users CASCADE; TRUNCATE system_settings;');
   await query("INSERT INTO users(id,preferences,is_admin) VALUES($1,'{\"enabledPlugins\":[\"flow\",\"notetrace\"]}',true),($2,'{}',false)",[U,V]);
   await query('INSERT INTO email_accounts(id,user_id,name,email_address) VALUES($1,$2,\'Personal\',\'me@example.com\'),($3,$4,\'Other\',\'other@example.com\')',[A,U,B,V]);
   await query("INSERT INTO folders(account_id,path,uid_validity) VALUES($1,'INBOX',7)",[A]);
-  await query("INSERT INTO messages(id,account_id,uid,folder,message_id,subject,from_email,date,body_text,snippet,thread_key) VALUES($1,$2,1,'INBOX','<one@example.com>','Contract review','alex@example.com',NOW(),'Please review the contract by Friday.','Please review…','thread1'),($3,$4,2,'INBOX','<other@example.com>','Private mail','other@example.com',NOW(),'Private body','Private…','thread2')",[M,A,N,B]);
+  await query("INSERT INTO messages(id,account_id,uid,folder,message_id,subject,from_email,date,body_text,snippet,thread_id) VALUES($1,$2,1,'INBOX','<one@example.com>','Contract review','alex@example.com',NOW(),'Please review the contract by Friday.','Please review…','thread1'),($3,$4,2,'INBOX','<other@example.com>','Private mail','other@example.com',NOW(),'Private body','Private…','thread2')",[M,A,N,B]);
   await saveDeveloperPolicy({api:true,mcp:true,webhooks:true});
 });
 
@@ -130,6 +132,57 @@ describe('REST and MCP transport',()=>{
 });
 
 describe('background analysis and signed durable events',()=>{
+  it('includes outgoing-only conversations as possible follow-ups',async()=>{
+    const sent='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,from_email,subject,body_text) VALUES($1,$2,7,'Sent','<proposal>','outgoing-only',NOW()-INTERVAL '5 days','me@example.com','Proposal','Could you review my proposal?')",[sent,A]);
+    state.complete.mockResolvedValue(JSON.stringify({items:[{message_id:sent,kind:'followup',title:'Follow up on proposal',summary:'Consider asking for an update.',quote:'Could you review my proposal?'}]}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect((await flowInbox(U)).items).toEqual([expect.objectContaining({message_id:sent,kind:'followup'})]);expect(state.mutate).not.toHaveBeenCalled();
+  });
+  it('reassesses a sent reply against its older inbox conversation and excludes drafts',async()=>{
+    state.complete.mockResolvedValue(JSON.stringify({items:[{message_id:M,kind:'action',title:'Review contract',summary:'Please review',quote:'Please review the contract by Friday.'}]}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect((await flowInbox(U)).items).toHaveLength(1);
+    await query("UPDATE messages SET date=NOW()-INTERVAL '7 days',synced_at=NOW()-INTERVAL '7 days' WHERE id=$1",[M]);
+    const sent='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',draft='ffffffff-ffff-4fff-8fff-ffffffffffff';
+    await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,from_email,subject,body_text) VALUES($1,$2,3,'Sent','<reply>','thread1',NOW(),'me@example.com','Re: Contract','I have reviewed the contract.'),($3,$2,4,'Drafts','<draft>','thread1',NOW()+INTERVAL '1 minute','me@example.com','Draft','THIS IS ONLY AN UNSENT DRAFT')",[sent,A,draft]);
+    await flowIngest({account:{id:A,user_id:U},folder:'Sent',newMailIds:[sent]});
+    expect((await query('SELECT affected_threads FROM integration_jobs WHERE account_id=$1',[A])).rows[0].affected_threads).toEqual(['thread1']);
+    state.complete.mockClear().mockResolvedValue('{"items":[]}');await tickIntegrations();
+    expect(state.complete).toHaveBeenCalledTimes(1);
+    const context=JSON.parse(state.complete.mock.calls[0][0][1].content);
+    expect(context.current_time).toMatch(/^\d{4}-/);expect(context.sources[0].excerpts).toContain('I have reviewed the contract.');expect(context.sources[0].excerpts).not.toContain('UNSENT DRAFT');
+    expect((await flowInbox(U)).items).toHaveLength(0);expect(state.mutate).not.toHaveBeenCalled();
+  });
+  it('recognizes localized Sent folders and immediate SMTP sent-record events',async()=>{
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    const sent='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    await query('INSERT INTO folders(account_id,path,special_use) VALUES($1,$2,$3)',[A,'Gesendet','\\Sent']);
+    await query("INSERT INTO messages(id,account_id,uid,folder,thread_id,date) VALUES($1,$2,9,'Gesendet','thread1',NOW())",[sent,A]);
+    await flowIngest({account:{id:A,user_id:U},folder:'Gesendet',newMailIds:[sent]});
+    expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('pending');await tickIntegrations();
+    await flowIngest({account:{id:A,user_id:U},folder:'Gesendet',sentChanged:{uid:9}});
+    expect((await query('SELECT affected_threads FROM integration_jobs WHERE account_id=$1',[A])).rows[0].affected_threads).toEqual(['thread1']);
+  });
+  it('queues hourly reassessments without an open UI, reruns unchanged excerpts, and coalesces timers',async()=>{
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();state.complete.mockClear();
+    await scheduleFlowReassessments();expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('done');
+    await query("UPDATE integration_jobs SET last_reassessed_at=NOW()-INTERVAL '2 hours' WHERE account_id=$1",[A]);
+    await query("UPDATE messages SET date=NOW()-INTERVAL '20 days',synced_at=NOW()-INTERVAL '20 days' WHERE id=$1",[M]);
+    await scheduleFlowReassessments();await scheduleFlowReassessments();await tickIntegrations();
+    expect(state.complete).toHaveBeenCalledTimes(1);
+    const job=(await query('SELECT * FROM integration_jobs WHERE account_id=$1',[A])).rows[0];expect(job.status).toBe('done');expect(job.full_reassessment_at).toBeNull();expect(job.last_reassessed_at).toBeTruthy();
+    await scheduleFlowReassessments();expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('done');expect(state.mutate).not.toHaveBeenCalled();
+  });
+  it('keeps a full refresh requested during another run and rechecks opted-out accounts',async()=>{
+    state.complete.mockImplementationOnce(async()=>{await enqueueFlow(U,A,{full:true});return '{"items":[]}';});
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect((await query('SELECT full_reassessment_at,status FROM integration_jobs WHERE account_id=$1',[A])).rows[0]).toMatchObject({status:'pending',full_reassessment_at:expect.any(Date)});
+    await tickIntegrations();await requestFlowRefresh(U,{account_ids:[A]});
+    expect((await query('SELECT full_reassessment_at FROM integration_jobs WHERE account_id=$1',[A])).rows[0].full_reassessment_at).toBeTruthy();
+    await setFlowAccount(U,{account_id:A,enabled:false});await scheduleFlowReassessments();
+    expect((await query('SELECT * FROM integration_jobs WHERE account_id=$1',[A])).rows).toHaveLength(0);
+  });
   it('preserves mail queued while an analysis job is running',async()=>{
     state.complete.mockImplementationOnce(async()=>{
       await enqueueFlow(U,A);

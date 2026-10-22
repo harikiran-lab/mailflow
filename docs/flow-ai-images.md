@@ -39,6 +39,6 @@ Set `MAILFLOW_FLOW_AI_TAG` to your chosen custom tag or a commit tag to pin a bu
 
 If your deployment already uses extra compose overrides (such as the HTTPS/Caddy configuration), retain them in the command and put the Flow AI image override last. If GHCR reports unauthorized, ensure the packages are public or log in with a GitHub credential allowed to read them; package visibility is independent of repository visibility.
 
-After startup, enable Flow AI, AI Inbox, API/MCP, and webhooks as needed under **Settings → Integrations → Apps**, then activate Flow AI in Plugins and opt in the desired inbox accounts. See [Flow AI configuration and API details](https://github.com/harikiran-lab/mailflow/blob/feat/flow-ai/docs/flow-ai.md) on the feature branch.
+After startup, enable Flow AI, AI Inbox, API/MCP, and webhooks as needed under **Settings → AI Assistant**, then activate Flow AI in Plugins and opt in the desired inbox accounts. See [Flow AI configuration and API details](https://github.com/harikiran-lab/mailflow/blob/feat/flow-ai/docs/flow-ai.md) on the feature branch.
 
 This workflow does not connect to your host or restart containers remotely. It requires no SSH credentials and prints the exact commands for you to run.

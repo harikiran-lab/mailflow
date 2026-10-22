@@ -15,4 +15,4 @@ function InboxNavigation({collapsed}){
 registerRuntime({pluginId:'flow',component:Runtime});
 registerSlot('sidebar-navigation',{pluginId:'flow',render:ctx=><InboxNavigation {...ctx}/>});
 registerSlot('main-view',{pluginId:'flow',isActive:ctx=>ctx.view==='flow-inbox',render:()=> <Suspense fallback={null}><Inbox/></Suspense>});
-registerPluginMeta('flow',{settingsLocation:{tab:'integrations',subtab:'apps',labelKey:'flow.settings'}});
+registerPluginMeta('flow',{settingsLocation:{tab:'ai',labelKey:'admin.tabs.ai'}});

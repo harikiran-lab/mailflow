@@ -199,6 +199,11 @@ export function createAiProvider({
       : (existing?.apiKeyConfig.apiKey || null);
     const config = normalizeAiConfig({
       ...input,
+      // Flow switches are managed separately; an older provider form must not overwrite them.
+      features: { ...input.features,
+        ...(Object.hasOwn(existing?.features || {}, 'flow') ? { flow: existing.features.flow } : {}),
+        ...(Object.hasOwn(existing?.features || {}, 'inbox') ? { inbox: existing.features.inbox } : {}),
+      },
       apiKeyConfig: { ...incomingApi, apiKey: storedKey },
     });
 

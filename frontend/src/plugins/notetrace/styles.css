@@ -69,7 +69,26 @@
 .notetrace-ui .nt-dialog-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border-subtle, var(--border)); background: var(--bg-secondary); }
 .notetrace-ui .nt-saved-links { margin: 14px 0; padding-left: 20px; line-height: 2; }
 .notetrace-ui .nt-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-.notetrace-ui.nt-settings { border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; }
+.notetrace-ui.nt-settings { border: 1px solid var(--border-subtle, var(--border)); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+.notetrace-ui .nt-settings-header { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 0; background: var(--bg-tertiary); color: var(--text-primary); text-align: left; cursor: pointer; transition: background .1s; }
+.notetrace-ui .nt-settings-header:hover { background: var(--bg-hover); }
+.notetrace-ui .nt-settings-header:focus-visible { outline-offset: -3px; }
+.notetrace-ui .nt-settings-icon { display: flex; color: var(--accent); flex-shrink: 0; }
+.notetrace-ui .nt-settings-icon svg { width: 20px; height: 20px; }
+.notetrace-ui .nt-settings-header > svg { width: 16px; height: 16px; color: var(--text-tertiary); transition: transform .2s; }
+.notetrace-ui .nt-settings-heading { flex: 1; min-width: 0; }
+.notetrace-ui .nt-settings-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.notetrace-ui .nt-settings-title-row strong { font-size: 14px; font-weight: 600; }
+.notetrace-ui .nt-settings-description { display: block; margin-top: 2px; font-size: 12px; line-height: 1.5; color: var(--text-tertiary); }
+.notetrace-ui .nt-connection-badge { border: 1px solid var(--border); border-radius: 10px; padding: 2px 8px; font-size: 11px; line-height: 1.4; color: var(--text-tertiary); background: var(--bg-primary); }
+.notetrace-ui .nt-connection-badge.nt-connected { border-color: #22c55e; color: #22c55e; background: rgba(34,197,94,.1); }
+.notetrace-ui .nt-settings-body { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-top: 1px solid var(--border-subtle, var(--border)); }
+.notetrace-ui .nt-settings-body p { margin: 0; }
+.notetrace-ui .nt-settings-account { font-size: 13px; color: var(--text-secondary); overflow-wrap: anywhere; }
+.notetrace-ui .nt-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.notetrace-ui .nt-settings-actions .nt-button { min-height: 32px; padding: 6px 14px; background: transparent; color: var(--text-secondary); font-size: 13px; text-decoration: none; }
+.notetrace-ui .nt-settings-help { font-size: 12px; line-height: 1.6; color: var(--text-tertiary); }
+.notetrace-ui .nt-settings-error { font-size: 13px; color: var(--red, #f87171); padding: 8px 10px; border-radius: 6px; background: rgba(248,113,113,.08); }
 .notetrace-ui .nt-settings-form { display: grid; gap: 14px; max-width: 520px; }
 @media (max-width: 520px) {
   .notetrace-ui.nt-overlay { padding: 10px; }

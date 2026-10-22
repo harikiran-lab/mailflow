@@ -7,20 +7,20 @@ Flow AI adds a floating mailbox assistant and an opt-in AI Inbox. Questions use 
 ## Enable
 
 1. Configure MailFlow's existing AI provider and user AI access. OpenAI-compatible Chat Completions providers must support streamed function/tool calls; ChatGPT/Codex provider support uses its native tool format.
-2. Under **Settings → Integrations → Apps**, an administrator enables Flow AI and/or AI Inbox. Developer API, MCP, and webhooks have separate administrator switches and default to off.
+2. Under **Settings → AI Assistant**, an administrator enables Flow AI and/or AI Inbox. Developer API, MCP, and webhooks have separate administrator switches and default to off.
 3. Activate **Flow AI** under Plugins. The floating sparkle opens the assistant; **AI Inbox** appears in the sidebar. Account scope applies to the entire conversation; changing scope starts a fresh conversation.
-4. Enable each desired inbox account in AI Inbox. The initial analysis covers up to 500 conversations from the last 30 days. Later ingested mail queues incremental work. Refresh requests are bounded to 10 per hour; chat to 30 per hour per user. Suggestions include an exact evidence quote, source link, progress, and freshness. Dismissing or snoozing a suggestion only changes the briefing.
+4. Enable each desired inbox account in AI Inbox. The initial analysis covers up to 500 conversations from the last 30 days. New Inbox and Sent messages queue incremental work. Sent replies refresh the affected conversations, including outgoing-only follow-ups. An hourly server-side job reassesses up to 500 Inbox/Sent conversations from the last 30 days with the current time, even when MailFlow is closed. This uses the configured AI provider; partial excerpts and conversation limits still apply. Sent edits/deletions are picked up by the hourly reassessment. Refresh requests are bounded to 10 per hour; chat to 30 per hour per user. Suggestions include an exact evidence quote, source link, progress, and freshness. Dismissing or snoozing a suggestion only changes the briefing.
 5. To capture notes, tasks, or reminders, activate and connect the existing NoteTrace integration. Flow opens its editable reviewer, retaining the prepared extraction. Saving creates NoteTrace items and local receipts; it does not synchronize remote completion or edit remote items.
 
-Background analysis runs through a durable database queue outside IMAP synchronization. It checkpoints progress and retries failures. Suggestions are based on partial excerpts and require review. Drafts do not send mail. Chat history is retained for 90 days and can be deleted in the assistant.
+Background analysis runs through a durable database queue outside IMAP synchronization. The Refresh button requests a full bounded reassessment. Drafts are excluded from reply evidence so an unsent reply cannot satisfy a request. It checkpoints progress and retries failures. Suggestions are based on partial excerpts and require review. Drafts do not send mail. Chat history is retained for 90 days and can be deleted in the assistant.
 
 ## Optional embeddings
 
-Administrators can configure a separate OpenAI-compatible `/embeddings` base URL, API key, and model in Apps. The key is encrypted with MailFlow's encryption key. Embeddings are optional: normalized vectors are stored in regular PostgreSQL arrays and rerank existing search candidates. This is not a whole-mailbox vector index. Keyword/full-text search remains available if the embedding provider fails. No pgvector extension, PostgreSQL image change, or extra database is required. Existing AI connection network rules apply to the embedding provider.
+Administrators can configure a separate OpenAI-compatible `/embeddings` base URL, API key, and model under AI Assistant. The key is encrypted with MailFlow's encryption key. Embeddings are optional: normalized vectors are stored in regular PostgreSQL arrays and rerank existing search candidates. This is not a whole-mailbox vector index. Keyword/full-text search remains available if the embedding provider fails. No pgvector extension, PostgreSQL image change, or extra database is required. Existing AI connection network rules apply to the embedding provider.
 
 ## API tokens and MCP
 
-With the relevant administrator switch enabled, each user creates their own named token in Apps, restricted to explicit accounts and scopes. Tokens expire (30 days by default, maximum 365), are shown once, and are stored only as SHA-256 hashes. Revocation takes effect on subsequent requests and proposal confirmation.
+With the relevant administrator switch enabled, each user creates their own named token under AI Assistant, restricted to explicit accounts and scopes. Tokens expire (30 days by default, maximum 365), are shown once, and are stored only as SHA-256 hashes. Revocation takes effect on subsequent requests and proposal confirmation.
 
 Scopes: `mail:read`, `mail:organize`, `drafts:write`, `notetrace:capture`. Keep the smallest scope set needed. Tokens cannot administer the server, issue tokens, or manage webhook subscriptions.
 
@@ -45,7 +45,7 @@ Browser origins must match APP_URL/FRONTEND_URL or an explicit comma-separated `
 
 ## Webhooks
 
-Create subscriptions in Apps with an HTTPS URL, allowed accounts, and chosen events: `mail.received`, `mail.changed`, `draft.changed`, `flow.inbox.updated`, `notetrace.captured`. Payloads contain identifiers and metadata rather than message bodies. Test, inspect delivery history, retry, and delete subscriptions in Apps. The signing secret is shown once and stored encrypted.
+Create subscriptions under AI Assistant with an HTTPS URL, allowed accounts, and chosen events: `mail.received`, `mail.changed`, `draft.changed`, `flow.inbox.updated`, `notetrace.captured`. Payloads contain identifiers and metadata rather than message bodies. Test, inspect delivery history, retry, and delete subscriptions under AI Assistant. The signing secret is shown once and stored encrypted.
 
 Headers: `X-Mailflow-Event`, `X-Mailflow-Delivery`, `X-Mailflow-Timestamp`, `X-Mailflow-Signature`. Verify `v1=` followed by the hex HMAC-SHA256 of `timestamp + "." + exactRawRequestBody`, using the subscription secret. Compare signatures in constant time, reject old timestamps, and deduplicate event IDs. Return a 2xx response after accepting the event. Delivery uses a durable outbox, bounded retries, and a 10-second request timeout; receivers must tolerate duplicates. Delivery history is retained for 30 days.
 
@@ -53,6 +53,6 @@ Private webhook destinations require an exact origin in the comma-separated `WEB
 
 ## Deployment
 
-Migration `0069_flow_integrations.sql` runs with the existing migration runner. It adds tokens, proposals, jobs, optional embeddings, subscriptions, and deliveries. Back up before upgrading. Backups include integration configuration, tokens, and subscriptions; proposal/job/delivery execution state is intentionally excluded from restore so it cannot replay old operations. Preserve ENCRYPTION_KEY to retain usable encrypted credentials.
+Migrations `0069_flow_integrations.sql` and `0070_flow_reassessment.sql` run with the existing migration runner. It adds tokens, proposals, jobs, optional embeddings, subscriptions, and deliveries. Back up before upgrading. Backups include integration configuration, tokens, and subscriptions; proposal/job/delivery execution state is intentionally excluded from restore so it cannot replay old operations. Preserve ENCRYPTION_KEY to retain usable encrypted credentials.
 
 The fork's **Build Flow AI images** workflow publishes amd64 and arm64 images on pushes to `feat/flow-ai`: `ghcr.io/harikiran-lab/mailflow-backend:flow-ai` and `ghcr.io/harikiran-lab/mailflow-frontend:flow-ai`, plus immutable commit tags. Use `docker-compose.flow-ai.yml` together with `docker-compose.ghcr.yml` to pull the fork images. PostgreSQL stays `postgres:16-alpine`. Configure and enable the features after the containers start; all new administrator switches default to off.
