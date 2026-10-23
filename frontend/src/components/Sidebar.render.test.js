@@ -119,3 +119,20 @@ describe('Sidebar — collapsed folders show their subfolders\' unread mail (#53
     assert.equal(badgeOf('Banking'), '5');
   });
 });
+
+test('AI Inbox clears regular mailbox highlights while preserving the remembered mailbox', async () => {
+  await mount({ collapsed: [] });
+  await React.act(async () => useStore.setState({ pluginView: null, showContacts: false }));
+  const activeRows = () => [...document.querySelectorAll('[data-mailbox-row]')].filter(row => row.style.background === 'var(--bg-hover)');
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.getState().setPluginView('flow-inbox'));
+  assert.equal(activeRows().length, 0);
+  assert.equal(useStore.getState().selectedAccountId, 'acct-1');
+  await React.act(async () => useStore.getState().setSelectedAccount('acct-1', 'INBOX'));
+  assert.equal(useStore.getState().pluginView, null);
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.setState({ expandedAccounts: { 'acct-1': false } }));
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.getState().setPluginView('flow-inbox'));
+  assert.equal(activeRows().length, 0);
+});

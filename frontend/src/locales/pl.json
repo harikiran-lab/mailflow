@@ -2184,6 +2184,21 @@
       "surveys": "Ankiety",
       "promotions": "Oferty promocyjne",
       "social": "Sieci społecznościowe"
-    }
+    },
+    "openEmailBehavior": "Otwieraj odnośniki do poczty w",
+    "openNavigate": "Skrzynka / panel odczytu",
+    "openPopup": "Okno wiadomości",
+    "backgroundDone": "Odpowiedź jest gotowa. Otwórz Flow AI.",
+    "backgroundFailed": "Generowanie zakończyło się błędem. Zapisany wynik jest dostępny w Flow AI.",
+    "backgroundHelp": "Możesz zamknąć ten panel. Flow AI pracuje dalej w tle i powiadomi po zakończeniu.",
+    "unreadResult": "Nowa odpowiedź Flow AI",
+    "questionHelp": "Wybierz opcję lub odpowiedz poniżej. Zmiany nadal wymagają potwierdzenia w podglądzie.",
+    "keepComposer": "Inny szkic jest otwarty. Zachowaj lub zapisz go, a potem otwórz ten szkic ponownie.",
+    "draftReady": "Szkic jest gotowy",
+    "editBeforeSending": "Sprawdź przed wysłaniem",
+    "replyChoice": "Ta wiadomość ma innych odbiorców. Odpowiedzieć tylko nadawcy czy wszystkim?",
+    "draftReadyHelp": "Otwórz edytowalną odpowiedź z tekstem już w treści wiadomości.",
+    "replySender": "Odpowiedz nadawcy",
+    "openDraft": "Otwórz szkic"
   }
 }

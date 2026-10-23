@@ -961,7 +961,7 @@ export default function Sidebar() {
                 if (!account) return null;
                 const accountFolders = folders[accountId] || [];
                 const folderObj = accountFolders.find(f => f.path === path);
-                const isActive = selectedAccountId === accountId && selectedFolder === path;
+                const isActive = !pluginView && !showContacts && selectedAccountId === accountId && selectedFolder === path;
                 const favBadge = unreadBadge({ count: folderObj?.unread_count, known: folderObj?.counts_known !== false,
                   stale: folderObj?.counts_stale, observedAt: folderObj?.server_counts_at });
                 const isRenamingThis = renamingFav?.accountId === accountId && renamingFav?.path === path;
@@ -1163,7 +1163,7 @@ export default function Sidebar() {
             known: Number.isFinite(unreadCounts.byAccount[account.id]) && countSnapshot?.known !== false,
             stale: countSnapshot?.stale, observedAt: countSnapshot?.observedAt, max: 999 });
           const expanded = expandedAccounts[account.id];
-          const isSelected = selectedAccountId === account.id;
+          const isSelected = !pluginView && !showContacts && selectedAccountId === account.id;
           const accountFolders = folders[account.id] || [];
           const accountHiddenPaths = hiddenFolders[account.id] || [];
           const showingHidden = showHiddenFor.has(account.id);
@@ -1382,7 +1382,7 @@ export default function Sidebar() {
                   if (isHidden && !showingHidden) return null;
 
                   const isRenaming = renamingFolder?.accountId === account.id && renamingFolder?.path === folder.path;
-                  const isFolderSelected = selectedAccountId === account.id && selectedFolder === folder.path;
+                  const isFolderSelected = !pluginView && !showContacts && selectedAccountId === account.id && selectedFolder === folder.path;
                   const visibleChildren = showingHidden ? children : children.filter(c => !accountHiddenPaths.includes(c.path));
                   const hasChildren = visibleChildren.length > 0;
                   const collapseKey = `${account.id}:${folder.path}`;

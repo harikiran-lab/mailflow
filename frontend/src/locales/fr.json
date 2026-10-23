@@ -2165,6 +2165,21 @@
       "surveys": "Sondages",
       "promotions": "Offres promotionnelles",
       "social": "Réseaux sociaux"
-    }
+    },
+    "openEmailBehavior": "Ouvrir les liens des e-mails dans",
+    "openNavigate": "Boîte / volet de lecture",
+    "openPopup": "Fenêtre de message",
+    "backgroundDone": "Votre réponse est prête. Ouvrez Flow AI.",
+    "backgroundFailed": "La génération a échoué. Le résultat enregistré reste disponible dans Flow AI.",
+    "backgroundHelp": "Vous pouvez fermer ce panneau. Flow AI continue en arrière-plan et vous avertit à la fin.",
+    "unreadResult": "Nouvelle réponse Flow AI",
+    "questionHelp": "Choisissez une option ou répondez ci-dessous. Les modifications nécessitent toujours une confirmation dans leur aperçu.",
+    "keepComposer": "Un autre brouillon est ouvert. Conservez-le ou enregistrez-le, puis rouvrez celui-ci.",
+    "draftReady": "Votre brouillon est prêt",
+    "editBeforeSending": "Vérifier avant l’envoi",
+    "replyChoice": "Ce message a d’autres destinataires. Répondre uniquement à l’expéditeur ou à tous ?",
+    "draftReadyHelp": "Ouvrez la réponse modifiable, avec le texte déjà dans le corps du message.",
+    "replySender": "Répondre à l’expéditeur",
+    "openDraft": "Ouvrir le brouillon"
   }
 }

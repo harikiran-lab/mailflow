@@ -33,10 +33,11 @@ test('greets the profile display name and fills the top ten summaries as entries
 });
 test('remembers the AI Inbox account selection across reloads',async()=>{
   await open({status:'done'});
-  await React.act(async()=>{const select=document.querySelector('select');select.value='account';select.dispatchEvent(new window.Event('change',{bubbles:true}));});
+  await React.act(async()=>{document.querySelector('[role=combobox]').click();});
+  await React.act(async()=>document.querySelector('[role=option][id$="-1"]').click());
   assert.equal(localStorage.getItem('mailflow_flow_scope:owner:inbox'),'account');
   await React.act(async()=>root.unmount());await open({status:'done'});
-  assert.equal(document.querySelector('select').value,'account');
+  assert.match(document.querySelector('[role=combobox]').textContent,/Personal/);
 });
 test('shows scheduled retries as paused work and allows manual retry without a stale red error',async()=>{
   await open({status:'pending',error:'Earlier failure',next_retry_at:'2026-10-22T18:00:00Z'});
@@ -59,4 +60,14 @@ test('offers a seven day window and five configurable exclusions',async()=>{
   await open({status:'done'});
   assert.equal(document.querySelector('input[type=number]').value,'7');
   assert.equal(document.querySelectorAll('.flow-filter-settings input[type=checkbox]:checked').length,5);
+});
+
+test('keeps sections collapsed by default, expands only one and places preferences last',async()=>{
+  await open({status:'done'});const toggles=[...document.querySelectorAll('.flow-section-toggle')];assert.equal(toggles.length,3);assert.ok(toggles.every(b=>b.getAttribute('aria-expanded')==='false'));
+  await React.act(async()=>toggles[0].click());assert.equal(toggles[0].getAttribute('aria-expanded'),'true');
+  await React.act(async()=>toggles[2].click());assert.equal(toggles[0].getAttribute('aria-expanded'),'false');assert.equal(toggles[2].getAttribute('aria-expanded'),'true');
+  assert.equal(document.querySelector('.flow-inbox-content').lastElementChild.className,'flow-filter-settings');
+});
+test('adds compact NoteTrace task controls to every glance item',async()=>{
+  await open({status:'done'});globalThis.__flowInboxState.enabledPlugins=['notetrace'];await React.act(async()=>root.render(React.createElement(AIInbox)));assert.equal(document.querySelectorAll('.flow-briefing-summary .flow-mini-task').length,10);
 });

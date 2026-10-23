@@ -2165,6 +2165,21 @@
       "surveys": "Pesquisas",
       "promotions": "Ofertas promocionais",
       "social": "Mídias sociais"
-    }
+    },
+    "openEmailBehavior": "Abrir links de e-mail em",
+    "openNavigate": "Caixa / painel de leitura",
+    "openPopup": "Janela de e-mail",
+    "backgroundDone": "Sua resposta está pronta. Abra o Flow AI.",
+    "backgroundFailed": "A geração terminou com um erro. O resultado salvo está disponível no Flow AI.",
+    "backgroundHelp": "Você pode fechar este painel. O Flow AI continua trabalhando em segundo plano e avisa quando terminar.",
+    "unreadResult": "Nova resposta do Flow AI",
+    "questionHelp": "Escolha uma opção ou responda abaixo. As alterações ainda exigem confirmação na prévia.",
+    "keepComposer": "Outro rascunho está aberto. Mantenha ou salve-o e abra este rascunho novamente.",
+    "draftReady": "Seu rascunho está pronto",
+    "editBeforeSending": "Revise antes de enviar",
+    "replyChoice": "Este e-mail tem outros destinatários. Responder só ao remetente ou a todos?",
+    "draftReadyHelp": "Abra a resposta editável com o texto já no corpo da mensagem.",
+    "replySender": "Responder ao remetente",
+    "openDraft": "Abrir rascunho"
   }
 }

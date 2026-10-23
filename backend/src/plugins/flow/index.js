@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, isPluginActivated, flowStatus, setFlowPreferences, setFlowAnalysis, setFlowAccount, requestFlowRefresh, flowInbox, dismissFlowItem, runFlowChat, flowConversations, deleteFlowConversation, flowIngest, flowEventsActive, prepareFlowAction, confirmFlowAction, getFlowAction, resolveFlowSource } from '../api.js';
+import { requireAuth, isPluginActivated, startFlowRun,getFlowRun,listFlowRuns,stopFlowRun,flowStatus, setFlowPreferences, setFlowAnalysis, setFlowAccount, requestFlowRefresh, flowInbox, dismissFlowItem, runFlowChat, flowConversations, deleteFlowConversation, flowIngest, flowEventsActive, prepareFlowAction, confirmFlowAction, getFlowAction, resolveFlowSource } from '../api.js';
 
 const router=Router();
 router.use(requireAuth);
@@ -19,6 +19,10 @@ router.delete('/conversations/:id',handle(req=>deleteFlowConversation(req.sessio
 router.post('/proposals',handle(req=>prepareFlowAction(req.session.userId,req.body)));
 router.get('/proposals/:id',handle(req=>getFlowAction(req.session.userId,req.params.id)));
 router.post('/proposals/:id/confirm',handle(req=>confirmFlowAction(req.session.userId,req.params.id,req.body.confirm)));
+router.post('/runs',handle(req=>startFlowRun(req.session.userId,req.body)));
+router.get('/runs',handle(req=>listFlowRuns(req.session.userId)));
+router.get('/runs/:id',handle(req=>getFlowRun(req.session.userId,req.params.id)));
+router.post('/runs/:id/stop',handle(req=>stopFlowRun(req.session.userId,req.params.id)));
 router.post('/chat',async(req,res)=>{
   const controller=new AbortController();
   const close=()=>{if(!res.writableEnded)controller.abort();};

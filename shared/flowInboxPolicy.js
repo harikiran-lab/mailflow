@@ -1,6 +1,6 @@
 export const FLOW_EXCLUSIONS = ['shopping','marketing','surveys','promotions','social'];
 export const FLOW_CATEGORIES = ['human','bill','charge','invoice',...FLOW_EXCLUSIONS,'other'];
-export const DEFAULT_FLOW_PREFERENCES = {days:7,excluded_categories:FLOW_EXCLUSIONS};
+export const DEFAULT_FLOW_PREFERENCES = {days:7,excluded_categories:FLOW_EXCLUSIONS,open_mode:'navigate'};
 
 // Legacy suggestions have no classification. Keep the fallback conservative:
 // a sale is not a bill, and a generic notification is not a personal message.

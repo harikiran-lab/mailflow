@@ -46,7 +46,7 @@ export async function ownedMessage(principal, id) {
 export function sourceKey(m) { return `${m.account_id}:${m.message_id || `row:${m.id}`}`; }
 export function publicMessage(m, body = false) {
   return { id: m.id, account_id: m.account_id, subject: m.subject || '(No subject)', from_email: m.from_email,
-    from_name: m.from_name, date: m.date, folder: m.folder, is_read: m.is_read, is_starred: m.is_starred,
+    from_name: m.from_name, to_addresses:m.to_addresses||[],cc_addresses:m.cc_addresses||[],reply_to:m.reply_to||[], date: m.date, folder: m.folder, is_read: m.is_read, is_starred: m.is_starred,
     snippet: m.snippet, source_key: sourceKey(m), url: `/?m=${m.id}`,
     ...(body ? { content: (m.body_text || m.snippet || '').slice(0, 16000), partial: !m.body_text || m.body_text.length > 16000 } : {}) };
 }

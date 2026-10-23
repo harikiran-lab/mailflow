@@ -2184,6 +2184,21 @@
       "surveys": "Průzkumy",
       "promotions": "Slevové akce",
       "social": "Sociální sítě"
-    }
+    },
+    "openEmailBehavior": "Otevírat odkazy na e-maily v",
+    "openNavigate": "Schránka / podokno čtení",
+    "openPopup": "Vyskakovací okno e-mailu",
+    "backgroundDone": "Odpověď je připravena. Otevřete Flow AI.",
+    "backgroundFailed": "Generování skončilo chybou. Uložený výstup je ve Flow AI.",
+    "backgroundHelp": "Panel můžete zavřít. Flow AI pokračuje na pozadí a po dokončení vás upozorní.",
+    "unreadResult": "Nová odpověď Flow AI",
+    "questionHelp": "Vyberte možnost nebo napište odpověď níže. Změny stále vyžadují potvrzení v náhledu.",
+    "keepComposer": "Jiný koncept je otevřen. Zachovejte nebo uložte jej a pak otevřete tento koncept znovu.",
+    "draftReady": "Koncept je připraven",
+    "editBeforeSending": "Před odesláním zkontrolujte",
+    "replyChoice": "E-mail má další příjemce. Odpovědět jen odesílateli, nebo všem?",
+    "draftReadyHelp": "Otevřete upravitelnou odpověď s návrhem již v těle zprávy.",
+    "replySender": "Odpovědět odesílateli",
+    "openDraft": "Otevřít koncept"
   }
 }

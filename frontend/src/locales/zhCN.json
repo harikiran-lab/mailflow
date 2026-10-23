@@ -2165,6 +2165,21 @@
       "surveys": "问卷调查",
       "promotions": "促销",
       "social": "社交"
-    }
+    },
+    "openEmailBehavior": "邮件链接打开方式",
+    "openNavigate": "收件箱 / 阅读窗格",
+    "openPopup": "邮件弹窗",
+    "backgroundDone": "回复已就绪，请打开 Flow AI。",
+    "backgroundFailed": "生成因错误停止，已保存的结果仍可在 Flow AI 查看。",
+    "backgroundHelp": "可以关闭此面板。Flow AI 将继续在后台工作，并在完成时通知你。",
+    "unreadResult": "新的 Flow AI 回复",
+    "questionHelp": "选择一个选项或在下方输入回答。更改仍需在预览中确认。",
+    "keepComposer": "另一个草稿已打开，请保留或保存后再打开此草稿。",
+    "draftReady": "草稿已就绪",
+    "editBeforeSending": "发送前请检查",
+    "replyChoice": "此邮件还有其他收件人。仅回复发件人还是回复全部？",
+    "draftReadyHelp": "打开可编辑的回复，生成的文字已填入邮件正文。",
+    "replySender": "回复发件人",
+    "openDraft": "打开草稿"
   }
 }

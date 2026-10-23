@@ -13,7 +13,8 @@ import { createToken,developerPolicy,hashToken,createWebhook,queueEvent,deliverW
 import { ownedAccounts,ownedMessage,searchMail,readMail,bindMailCapability } from './mailCapabilities.js';
 import { prepareAction,confirmAction } from './actionProposals.js';
 import { availableTools,executeMailTool } from './mailTools.js';
-import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh,dismissFlowItem,setFlowPreferences,setFlowAnalysis,flowStatus } from './flowAI.js';
+import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh,dismissFlowItem,setFlowPreferences,setFlowAnalysis,flowStatus,flowConversations,deleteFlowConversation } from './flowAI.js';
+import { startFlowRun,getFlowRun,listFlowRuns,stopFlowRun,recoverFlowRuns } from './flowChatRuns.js';
 import { invalidateActivationCache } from '../plugins/activation.js';
 import { externalRoutes,mcpRoutes } from '../routes/developer.js';
 
@@ -288,7 +289,7 @@ describe('Inbox preferences and durable pause controls',()=>{
     await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
     expect((await flowInbox(U)).items).toHaveLength(0);
     await setFlowPreferences(U,{days:14,excluded_categories:[]});expect((await flowInbox(U)).items).toHaveLength(1);
-    expect((await flowStatus(U)).preferences).toEqual({days:14,excluded_categories:[]});
+    expect((await flowStatus(U)).preferences).toEqual({days:14,excluded_categories:[],open_mode:'navigate'});
     expect((await flowStatus(V)).preferences.days).toBe(7);
     await expect(setFlowPreferences(U,{days:0,excluded_categories:[]})).rejects.toMatchObject({status:400});
     await expect(setFlowPreferences(U,{days:7,excluded_categories:['unknown']})).rejects.toMatchObject({status:400});
@@ -312,5 +313,50 @@ describe('Inbox preferences and durable pause controls',()=>{
     const work=tickIntegrations();await started;await setFlowAnalysis(U,{account_ids:[A],paused:true});await work;
     expect((await flowStatus(U)).accounts[0].job).toMatchObject({status:'paused',error:null,attempts:0});
     state.complete.mockResolvedValue('{"items":[]}');await setFlowAnalysis(U,{account_ids:[A],paused:false});await tickIntegrations();expect((await flowStatus(U)).accounts[0].job.status).toBe('done');
+  });
+});
+
+async function waitForRun(id,predicate,timeout=5000){const deadline=Date.now()+timeout;while(Date.now()<deadline){const value=await getFlowRun(U,id);if(predicate(value))return value;await new Promise(resolve=>setTimeout(resolve,10));}throw Error('Timed out waiting for Flow run');}
+describe('saved Flow background conversations',()=>{
+  it('keeps running after the start response and saves partial and final output',async()=>{
+    let release,started;const ready=new Promise(r=>{started=r;});
+    state.turn.mockImplementationOnce(async(_m,_t,{onDelta})=>{onDelta('Partial answer');started();await new Promise(r=>{release=r;});return {role:'assistant',content:'Partial answer',tool_calls:[]};});
+    const run=await startFlowRun(U,{prompt:'Summarize my mail',account_ids:[A]});await ready;
+    const partial=await waitForRun(run.id,r=>r.output.text==='Partial answer');expect(partial.status).toBe('running');
+    await expect(startFlowRun(U,{prompt:'Overlap',account_ids:[A]})).rejects.toMatchObject({status:409});
+    release();const done=await waitForRun(run.id,r=>r.status==='done');expect(done.output.text).toBe('Partial answer');expect(done.input).toBeUndefined();
+    expect((await listFlowRuns(U)).runs[0].id).toBe(run.id);expect(state.mutate).not.toHaveBeenCalled();
+  });
+  it('saves the final answer when a compatible provider returns no incremental deltas',async()=>{
+    state.turn.mockResolvedValueOnce({role:'assistant',content:'## Ready\n\nThe answer is saved.',tool_calls:[]});
+    const created=await startFlowRun(U,{prompt:'Brief me',account_ids:[A]});const done=await waitForRun(created.id,r=>r.status==='done');expect(done.output.text).toContain('The answer is saved.');
+  });
+  it('validates scope before queuing and stops only on an explicit request',async()=>{
+    await expect(startFlowRun(U,{prompt:'No',account_ids:[B]})).rejects.toMatchObject({status:403});
+    await expect(startFlowRun(U,{prompt:'No',account_ids:[A],message_id:N,_account_id:A})).rejects.toMatchObject({status:404});
+    let started;const ready=new Promise(r=>{started=r;});state.turn.mockImplementationOnce(async(_m,_t,{signal})=>{started();return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));});
+    const run=await startFlowRun(U,{prompt:'Read',account_ids:[A]});await ready;await stopFlowRun(U,run.id);expect((await waitForRun(run.id,r=>r.status==='stopped')).error).toBeUndefined();
+  });
+  it('deletes saved completed runs when their conversation history is deleted',async()=>{
+    state.turn.mockResolvedValueOnce({role:'assistant',content:'A saved answer',tool_calls:[]});
+    const created=await startFlowRun(U,{prompt:'Save this',account_ids:[A]});const run=await waitForRun(created.id,r=>r.status==='done');
+    await deleteFlowConversation(U,run.conversation_id);await expect(getFlowRun(U,run.id)).rejects.toMatchObject({status:404});
+  });
+  it('retains unfinished output with an explicit error after a server interruption',async()=>{
+    const id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    await query("INSERT INTO plugin_data(plugin_id,key,owner_id,value,visibility,updated_at) VALUES('flow',$1,$2,$3::jsonb,'private',NOW()-INTERVAL '3 minutes')",['run:'+U+':'+id,U,JSON.stringify({id,status:'running',account_ids:[A],output:{text:'Saved partial answer'}})]);
+    await recoverFlowRuns();const run=await getFlowRun(U,id);expect(run.status).toBe('failed');expect(run.output.text).toBe('Saved partial answer');expect(run.error).toMatch(/server restarted/);
+  });
+  it('suspends at a clarification question and does not execute later tools',async()=>{
+    state.turn.mockResolvedValueOnce({role:'assistant',content:'',tool_calls:[{id:'question1',type:'function',function:{name:'ask_user',arguments:JSON.stringify({question:'Who should receive the reply?',options:['Sender','Everyone']})}},{id:'later',type:'function',function:{name:'search_mail',arguments:'{}'}}]});
+    const events=[];await runFlowChat(U,{prompt:'Draft a reply',account_ids:[A]},(type,data)=>events.push({type,data}));
+    expect(events.find(e=>e.type==='question').data.options).toEqual(['Sender','Everyone']);expect(events.at(-1).data.waiting_for_user).toBe(true);expect(events.filter(e=>e.type==='tool'&&e.data.status==='running')).toHaveLength(1);expect(state.turn).toHaveBeenCalledTimes(1);expect(state.mutate).not.toHaveBeenCalled();
+    const id=events.find(e=>e.type==='conversation').data.id;expect((await flowConversations(U,id)).messages.at(-1).questions[0].question).toBe('Who should receive the reply?');
+    state.turn.mockResolvedValueOnce({role:'assistant',content:'Ready to draft.',tool_calls:[]});await runFlowChat(U,{prompt:'Sender',account_ids:[A],conversation_id:id},()=>{});
+    expect(state.turn.mock.calls[1][0].filter(m=>m.role==='assistant').every(m=>!('questions' in m))).toBe(true);
+  });
+  it('persists and validates email opening preferences',async()=>{
+    await setFlowPreferences(U,{days:7,excluded_categories:[],open_mode:'popup'});expect((await flowStatus(U)).preferences.open_mode).toBe('popup');
+    await expect(setFlowPreferences(U,{days:7,excluded_categories:[],open_mode:'unsafe'})).rejects.toMatchObject({status:400});
   });
 });

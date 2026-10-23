@@ -29,13 +29,22 @@ export async function streamFlow(input,onEvent,signal) {
   try{for(;;){const part=await reader.read();if(part.done)break;buffer=(buffer+decoder.decode(part.value,{stream:true})).replace(/\r\n/g,'\n');buffer=parseFlowEvents(buffer,(type,data)=>{if(type==='done')done=true;if(type==='error')throw new Error(data.error);onEvent(type,data);});if(buffer.length>1024*1024)throw new Error('Flow response exceeded its limit');}if(!done)throw new Error('Response interrupted. Pending previews have not been applied.');}
   finally{await reader.cancel().catch(()=>{});reader.releaseLock();}
 }
-export async function openFlowSource(source) {
+const preferences=new Map();
+export function cacheFlowPreferences(userId,value){if(userId&&value){if(preferences.size>20)preferences.clear();preferences.set(userId,value);}}
+export async function resolveFlowMessage(source) {
   const userId=useStore.getState().user?.id;
   const live=await flowRequest(source.source_key?'flow/source?key='+encodeURIComponent(source.source_key):'flow/source?id='+encodeURIComponent(source.message_id||source.id));
   // The pane needs message metadata even when the source is outside the loaded
   // page/category. Use the same durable cache as notification deep links.
   const message=await api.getMessage(live.id);
   if(useStore.getState().user?.id!==userId)return;
-  const state=useStore.getState();state.setSelectedAccount(message.account_id,message.folder||'INBOX');state.setThreadMessages(`__dl_${message.id}`,[message]);state.setSelectedMessage(message.id);state.setMobileSidebarOpen(false);
+  return message;
+}
+export async function openFlowSource(source,{mode}={}) {
+  const message=await resolveFlowMessage(source);if(!message)return;
+  const state=useStore.getState();
+  const popup=(mode||preferences.get(state.user?.id)?.open_mode)==='popup'&&typeof window!=='undefined'&&window.innerWidth>=768;
+  if(popup){state.setThreadMessages(`__dl_${message.id}`,[message]);state.openMessageWindow(message.id);return;}
+  state.setSelectedAccount(message.account_id,message.folder||'INBOX');state.setThreadMessages(`__dl_${message.id}`,[message]);state.setSelectedMessage(message.id);state.setMobileSidebarOpen(false);
 }
 export function askFlow(prompt,messageId) {window.dispatchEvent(new CustomEvent('mailflow:ask-flow',{detail:{prompt,messageId}}));}

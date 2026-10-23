@@ -64,3 +64,9 @@ test('provider error events surface as errors', async () => {
   globalThis.fetch = async () => new Response('event: error\ndata: {"error":"Provider unavailable"}\n\n');
   await assert.rejects(streamFlow({ prompt: 'Hello' }, () => {}), /Provider unavailable/);
 });
+
+test('popup mode caches the email and opens a window without changing the mailbox',async()=>{
+ const calls=[],message={id:'popup-mail',account_id:'account',folder:'INBOX'};globalThis.window={innerWidth:1200};globalThis.__flowSourceState={user:{id:'owner'},setThreadMessages(key,rows){calls.push(['cache',key,rows]);},openMessageWindow(id){calls.push(['popup',id]);},setSelectedAccount(){throw Error('Unexpected navigation');}};
+ globalThis.fetch=async url=>Response.json(url.includes('/flow/source')?{id:'popup-mail'}:message);
+ await openFlowSource({id:'popup-mail'},{mode:'popup'});assert.deepEqual(calls[1],['popup','popup-mail']);assert.equal(calls[0][2][0].id,'popup-mail');delete globalThis.window;delete globalThis.__flowSourceState;
+});

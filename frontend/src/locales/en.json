@@ -2165,6 +2165,21 @@
       "surveys": "Surveys",
       "promotions": "Promotions",
       "social": "Social"
-    }
+    },
+    "openEmailBehavior": "Open email links in",
+    "openNavigate": "Inbox / reading pane",
+    "openPopup": "Email popup",
+    "backgroundDone": "Your response is ready. Open Flow AI to read it.",
+    "backgroundFailed": "Generation stopped with an error. Saved output is available in Flow AI.",
+    "backgroundHelp": "You can close this panel. Flow AI keeps working in the background and notifies you when finished.",
+    "unreadResult": "New Flow AI response",
+    "questionHelp": "Choose an option or type your answer below. Changes still require confirmation in their preview.",
+    "keepComposer": "Another draft is open. Keep or save it, then open this draft again.",
+    "draftReady": "Your draft is ready",
+    "editBeforeSending": "Review before sending",
+    "replyChoice": "This email has other recipients. Reply only to the sender or reply all?",
+    "draftReadyHelp": "Open the editable reply, with your response already in the message body.",
+    "replySender": "Reply to sender",
+    "openDraft": "Open draft"
   }
 }

@@ -2165,6 +2165,21 @@
       "surveys": "Umfragen",
       "promotions": "Angebote",
       "social": "Soziale Netzwerke"
-    }
+    },
+    "openEmailBehavior": "E-Mail-Links öffnen in",
+    "openNavigate": "Posteingang / Lesebereich",
+    "openPopup": "E-Mail-Fenster",
+    "backgroundDone": "Deine Antwort ist bereit. Öffne Flow AI.",
+    "backgroundFailed": "Die Generierung ist fehlgeschlagen. Gespeicherte Ausgabe ist in Flow AI verfügbar.",
+    "backgroundHelp": "Du kannst dieses Fenster schließen. Flow AI arbeitet im Hintergrund weiter und meldet sich nach Abschluss.",
+    "unreadResult": "Neue Flow-AI-Antwort",
+    "questionHelp": "Wähle eine Option oder antworte unten. Änderungen müssen weiterhin in ihrer Vorschau bestätigt werden.",
+    "keepComposer": "Ein anderer Entwurf ist geöffnet. Behalte oder speichere ihn und öffne diesen Entwurf erneut.",
+    "draftReady": "Dein Entwurf ist bereit",
+    "editBeforeSending": "Vor dem Senden prüfen",
+    "replyChoice": "Diese E-Mail hat weitere Empfänger. Nur dem Absender oder allen antworten?",
+    "draftReadyHelp": "Öffne die bearbeitbare Antwort mit dem Text bereits im Nachrichtentext.",
+    "replySender": "Dem Absender antworten",
+    "openDraft": "Entwurf öffnen"
   }
 }
