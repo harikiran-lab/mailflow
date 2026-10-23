@@ -13,7 +13,7 @@ import { createToken,developerPolicy,hashToken,createWebhook,queueEvent,deliverW
 import { ownedAccounts,ownedMessage,searchMail,readMail,bindMailCapability } from './mailCapabilities.js';
 import { prepareAction,confirmAction } from './actionProposals.js';
 import { availableTools,executeMailTool } from './mailTools.js';
-import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh } from './flowAI.js';
+import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh,dismissFlowItem } from './flowAI.js';
 import { invalidateActivationCache } from '../plugins/activation.js';
 import { externalRoutes,mcpRoutes } from '../routes/developer.js';
 
@@ -132,6 +132,45 @@ describe('REST and MCP transport',()=>{
 });
 
 describe('background analysis and signed durable events',()=>{
+  it('keeps rapid check-offs across concurrent dismiss requests and refreshes',async()=>{
+    state.complete.mockResolvedValue(JSON.stringify({items:[{message_id:M,kind:'action',title:'Review',summary:'Please review',quote:'Please review the contract by Friday.'},{message_id:M,kind:'topic',title:'Contract',summary:'Review request',quote:'Please review the contract by Friday.'}]}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    const items=(await flowInbox(U)).items;expect(items).toHaveLength(2);
+    await Promise.all(items.map(i=>dismissFlowItem(U,{id:i.id})));
+    expect((await flowInbox(U)).items).toHaveLength(0);
+  });
+  it('retries malformed model JSON in a smaller request before failing the account',async()=>{
+    state.complete.mockResolvedValueOnce('{"items":[').mockResolvedValueOnce('{"items":[]}');
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect(state.complete).toHaveBeenCalledTimes(2);
+    expect(state.complete.mock.calls[0][1].timeoutMs).toBe(120000);
+    expect((await query('SELECT status,error FROM integration_jobs WHERE account_id=$1',[A])).rows[0]).toMatchObject({status:'done',error:null});
+  });
+  it('preserves completed batches across provider failures and resumes only unfinished mail',async()=>{
+    for(let i=0;i<5;i++)await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,from_email,body_text) VALUES($1,$2,$3,'INBOX',$4,$4,NOW()-INTERVAL '1 minute','sender@example.com','A message')",[`eeeeeeee-eeee-4eee-8eee-${String(i).padStart(12,'0')}`,A,10+i,`extra${i}`]);
+    state.complete.mockResolvedValueOnce('{"items":[]}').mockRejectedValueOnce(Object.assign(Error('Provider is busy. Try again later.'),{status:429}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    let job=(await query('SELECT status,error,available_at FROM integration_jobs WHERE account_id=$1',[A])).rows[0];
+    expect(job.status).toBe('pending');expect(job.error).toContain('Provider is busy');expect(job.available_at.getTime()).toBeGreaterThan(Date.now());
+    expect((await flowInbox(U)).accounts[0].scanned).toBe(5);
+    state.complete.mockClear().mockResolvedValue('{"items":[]}');await query("UPDATE integration_jobs SET available_at=NOW()-INTERVAL '1 minute' WHERE account_id=$1",[A]);await tickIntegrations();
+    expect(state.complete).toHaveBeenCalledTimes(1);expect(JSON.parse(state.complete.mock.calls[0][0][1].content).sources).toHaveLength(1);
+    job=(await query('SELECT status,error FROM integration_jobs WHERE account_id=$1',[A])).rows[0];expect(job).toMatchObject({status:'done',error:null});expect((await flowInbox(U)).accounts[0].scanned).toBe(6);
+  });
+  it('clears stale errors on refresh and serializes overlapping worker ticks',async()=>{
+    await setFlowAccount(U,{account_id:A,enabled:true});
+    await query("UPDATE integration_jobs SET status='failed',error='Old failure' WHERE account_id=$1",[A]);
+    await enqueueFlow(U,A);expect((await query('SELECT error FROM integration_jobs WHERE account_id=$1',[A])).rows[0].error).toBeNull();
+    let release,started;const ready=new Promise(resolve=>{started=resolve;});
+    state.complete.mockImplementationOnce(async()=>{started();return new Promise(resolve=>{release=()=>resolve('{"items":[]}');});});
+    const first=tickIntegrations();await ready;await tickIntegrations();expect(state.complete).toHaveBeenCalledTimes(1);release();await first;
+  });
+  it('keeps optional embedding failures separate from successful Inbox analysis',async()=>{
+    await query("INSERT INTO system_settings(key,value) VALUES('mail_embeddings',$1)",[JSON.stringify({enabled:true,base_url:'http://local.example/v1',model:'broken',key:null})]);
+    state.fetch.mockImplementation(async()=>Response.json({error:'input exceeds the 10-token limit'},{status:400}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('done');expect((await flowInbox(U)).accounts[0].scanned).toBe(1);
+  });
   it('includes outgoing-only conversations as possible follow-ups',async()=>{
     const sent='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
     await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,from_email,subject,body_text) VALUES($1,$2,7,'Sent','<proposal>','outgoing-only',NOW()-INTERVAL '5 days','me@example.com','Proposal','Could you review my proposal?')",[sent,A]);

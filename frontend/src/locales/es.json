@@ -2142,6 +2142,12 @@
       "snooze": "Posponer conversación",
       "draft": "Guardar borrador",
       "capture": "Guardar en NoteTrace"
-    }
+    },
+    "atAGlance": "De un vistazo",
+    "summaryHelp": "Un breve resumen de las sugerencias de abajo. Abre un título para leer el correo de origen.",
+    "retryQueued": "Reintento programado",
+    "retryHelp": "El análisis se pausó por un error del proveedor. Los resultados guardados siguen disponibles. Se reintentará a las {{time}}.",
+    "maximizeAssistant": "Maximizar Flow AI",
+    "restoreAssistant": "Restaurar tamaño del panel"
   }
 }

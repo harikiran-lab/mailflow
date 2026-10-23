@@ -1,4 +1,4 @@
-import { CSRF_HEADER, CSRF_VALUE } from '../../utils/api.js';
+import { api, CSRF_HEADER, CSRF_VALUE } from '../../utils/api.js';
 import { useStore } from '../../store/index.js';
 
 export async function flowRequest(path,body,method=body?'POST':'GET',signal) {
@@ -31,8 +31,11 @@ export async function streamFlow(input,onEvent,signal) {
 }
 export async function openFlowSource(source) {
   const userId=useStore.getState().user?.id;
-  const live=await flowRequest(source.source_key?'flow/source?key='+encodeURIComponent(source.source_key):'flow/source?id='+encodeURIComponent(source.id));
+  const live=await flowRequest(source.source_key?'flow/source?key='+encodeURIComponent(source.source_key):'flow/source?id='+encodeURIComponent(source.message_id||source.id));
+  // The pane needs message metadata even when the source is outside the loaded
+  // page/category. Use the same durable cache as notification deep links.
+  const message=await api.getMessage(live.id);
   if(useStore.getState().user?.id!==userId)return;
-  const state=useStore.getState();state.setSelectedAccount(live.account_id,live.folder||'INBOX');state.setSelectedMessage(live.id);state.setMobileSidebarOpen(false);
+  const state=useStore.getState();state.setSelectedAccount(message.account_id,message.folder||'INBOX');state.setThreadMessages(`__dl_${message.id}`,[message]);state.setSelectedMessage(message.id);state.setMobileSidebarOpen(false);
 }
 export function askFlow(prompt,messageId) {window.dispatchEvent(new CustomEvent('mailflow:ask-flow',{detail:{prompt,messageId}}));}

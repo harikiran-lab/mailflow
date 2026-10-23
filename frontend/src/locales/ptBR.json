@@ -2142,6 +2142,12 @@
       "snooze": "Adiar conversa",
       "draft": "Salvar rascunho",
       "capture": "Salvar no NoteTrace"
-    }
+    },
+    "atAGlance": "Visão geral",
+    "summaryHelp": "Um breve resumo das sugestões abaixo. Abra um título para ler o e-mail de origem.",
+    "retryQueued": "Nova tentativa agendada",
+    "retryHelp": "A análise foi pausada após um erro do provedor. Os resultados salvos continuam disponíveis. Nova tentativa às {{time}}.",
+    "maximizeAssistant": "Ampliar Flow AI",
+    "restoreAssistant": "Restaurar tamanho do painel"
   }
 }

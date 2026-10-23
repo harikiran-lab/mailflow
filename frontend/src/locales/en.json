@@ -2142,6 +2142,12 @@
       "snooze": "Snooze conversation",
       "draft": "Save draft",
       "capture": "Save to NoteTrace"
-    }
+    },
+    "atAGlance": "At a glance",
+    "summaryHelp": "A short briefing from the suggestions below. Open a heading to read its source email.",
+    "retryQueued": "Retry scheduled",
+    "retryHelp": "Analysis paused after a provider error. Saved results remain available. Retrying at {{time}}.",
+    "maximizeAssistant": "Maximize Flow AI",
+    "restoreAssistant": "Restore panel size"
   }
 }

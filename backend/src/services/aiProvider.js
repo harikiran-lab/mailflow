@@ -260,7 +260,7 @@ export function createAiProvider({
     return headers;
   }
 
-  async function completeApiKey(config, messages, { signal, maxTokens, allowEmpty = false } = {}) {
+  async function completeApiKey(config, messages, { signal, maxTokens, allowEmpty = false, timeoutMs } = {}) {
     const apiKey = apiKeyCredential(config);
     const body = {
       model: config.apiKeyConfig.model,
@@ -272,7 +272,7 @@ export function createAiProvider({
       method: 'POST',
       headers: apiKeyHeaders(apiKey),
       body: JSON.stringify(body),
-    }, { signal });
+    }, { signal, timeoutMs });
     try {
       const { response } = request;
       const text = await readLimited(response, response.ok ? JSON_BODY_LIMIT_BYTES : ERROR_BODY_LIMIT_BYTES);

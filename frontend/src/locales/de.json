@@ -2142,6 +2142,12 @@
       "snooze": "Gespräch zurückstellen",
       "draft": "Entwurf speichern",
       "capture": "In NoteTrace speichern"
-    }
+    },
+    "atAGlance": "Auf einen Blick",
+    "summaryHelp": "Eine kurze Übersicht der Vorschläge unten. Eine Überschrift öffnet die zugehörige E-Mail.",
+    "retryQueued": "Erneuter Versuch geplant",
+    "retryHelp": "Die Analyse wurde nach einem Anbieterfehler pausiert. Gespeicherte Ergebnisse bleiben verfügbar. Neuer Versuch um {{time}}.",
+    "maximizeAssistant": "Flow AI maximieren",
+    "restoreAssistant": "Panelgröße wiederherstellen"
   }
 }

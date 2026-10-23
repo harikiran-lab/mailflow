@@ -2142,6 +2142,12 @@
       "snooze": "稍后处理对话",
       "draft": "保存草稿",
       "capture": "保存到 NoteTrace"
-    }
+    },
+    "atAGlance": "一览速览",
+    "summaryHelp": "下方建议的简短摘要。点击标题可阅读原始邮件。",
+    "retryQueued": "已安排重试",
+    "retryHelp": "分析因提供商错误而暂停。已保存的结果仍然可用。将在 {{time}} 重试。",
+    "maximizeAssistant": "最大化 Flow AI",
+    "restoreAssistant": "恢复面板大小"
   }
 }
