@@ -2018,7 +2018,6 @@
     "close": "Cerrar",
     "accountScope": "Ámbito de cuentas",
     "unifiedAccounts": "Cuentas de la bandeja unificada",
-    "selectedEmail": "Este correo",
     "welcome": "Encuentra tu ritmo.",
     "welcomeHelp": "Pregunta, ponte al día y encuentra el siguiente paso en tu correo.",
     "briefingPrompt": "¿Qué requiere mi atención en la bandeja de entrada?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "Una bandeja más tranquila empieza aquí.",
     "optInHelp": "Elige las cuentas para analizar. El proveedor de IA configurado recibirá fragmentos para sugerir acciones y resumir novedades.",
     "analysisAccounts": "Cuentas incluidas en el análisis en segundo plano",
-    "analysisDisclosure": "Activación por cuenta. Primero hasta 500 conversaciones de los últimos 30 días; después, correo nuevo. Se excluyen adjuntos. Los mensajes nuevos recibidos y enviados activan actualizaciones. Las conversaciones existentes se reevalúan cada hora con tu proveedor de IA.",
     "off": "Desactivado",
     "analyzingHelp": "El análisis se ejecuta en segundo plano. Puedes seguir usando el correo.",
     "suggestedActions": "Acciones sugeridas",
@@ -2149,6 +2147,24 @@
     "retryHelp": "El análisis de esta cuenta está en pausa. Las sugerencias guardadas siguen disponibles. Se reintentará a las {{time}}.",
     "maximizeAssistant": "Maximizar Flow AI",
     "restoreAssistant": "Restaurar tamaño del panel",
-    "errorDetails": "Último error"
+    "errorDetails": "Último error",
+    "automaticEmailContext": "Correo actual incluido automáticamente",
+    "analysisPaused": "En pausa",
+    "inboxPreferences": "Preferencias de la bandeja",
+    "priorityHelp": "Los 10 primeros priorizan mensajes personales, facturas, cargos y solicitudes urgentes. Se excluyen las categorías masivas.",
+    "lookbackDays": "Mostrar los últimos días",
+    "excludeCategories": "Ocultar estas categorías",
+    "analysisWindowHelp": "Analiza hasta 500 conversaciones de los últimos {{days}} días sin adjuntos. La actividad entrante y enviada activa actualizaciones; se reevalúa cada hora.",
+    "pausedHelp": "Análisis en pausa. Las sugerencias guardadas siguen disponibles.",
+    "analysisReady": "El análisis en segundo plano está actualizado.",
+    "resumeAnalysis": "Reanudar análisis",
+    "pauseAnalysis": "Pausar análisis",
+    "exclusions": {
+      "shopping": "Compras",
+      "marketing": "Mercadotecnia",
+      "surveys": "Encuestas",
+      "promotions": "Promociones",
+      "social": "Redes sociales"
+    }
   }
 }

@@ -15,7 +15,7 @@ Object.assign(globalThis,{window:dom.window,document:dom.window.document,localSt
 const React=await import('react'),{createRoot}=await import('react-dom/client');
 const AIInbox=(await import('./AIInbox.jsx')).default;
 let root;
-const items=Array.from({length:12},(_,i)=>({id:'item-'+i,source_key:'source-'+i,kind:'topic',title:'Topic '+i,summary:'Short summary '+i,quote:'Evidence',date:'2026-10-22',from_email:'sender@example.com'}));
+const items=Array.from({length:12},(_,i)=>({id:'item-'+i,source_key:'source-'+i,kind:'topic',category:'human',title:'Topic '+i,summary:'Short summary '+i,quote:'Evidence',date:'2026-10-22',from_email:'sender@example.com'}));
 async function open(job){
   globalThis.__flowInboxState={user:{id:'owner',displayName:'Harikiran Kandula',username:'login@example.com'},selectedAccountId:null,enabledPlugins:[]};
   globalThis.fetch=async url=>Response.json(url.includes('/status')?{allowed:true,features:{inbox:true},accounts:[{id:'account',name:'Personal',config:{enabled:true},job}]}:url.includes('/inbox')?{items,accounts:[]}:{});
@@ -44,4 +44,19 @@ test('shows scheduled retries as paused work and allows manual retry without a s
   assert.ok(document.querySelector('.flow-retry'));assert.equal(document.querySelector('.flow-account-settings .flow-error'),null);
   const details=document.querySelector('.flow-retry-details');assert.ok(details);assert.equal(details.querySelector('summary').textContent,'flow.errorDetails');assert.match(details.textContent,/Earlier failure/);
   assert.equal(document.querySelector('.flow-inbox-topbar button').disabled,false);
+});
+
+test('pauses and resumes selected accounts and shows the persisted state',async()=>{
+  await open({status:'running'});
+  let paused=false;const writes=[];
+  globalThis.fetch=async(url,options={})=>{if(url.endsWith('/analysis')){const body=JSON.parse(options.body);writes.push(body);paused=body.paused;return Response.json({ok:true});}return Response.json({allowed:true,features:{inbox:true},accounts:[{id:'account',name:'Personal',config:{enabled:true,paused},job:{status:paused?'paused':'pending'}}]});};
+  await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('flow.pauseAnalysis')).click());
+  assert.deepEqual(writes[0],{account_ids:['account'],paused:true});assert.match(document.querySelector('.flow-progress').textContent,/flow.pausedHelp/);
+  await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('flow.resumeAnalysis')).click());
+  assert.equal(writes[1].paused,false);
+});
+test('offers a seven day window and five configurable exclusions',async()=>{
+  await open({status:'done'});
+  assert.equal(document.querySelector('input[type=number]').value,'7');
+  assert.equal(document.querySelectorAll('.flow-filter-settings input[type=checkbox]:checked').length,5);
 });

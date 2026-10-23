@@ -32,15 +32,20 @@ test('maximizes and restores without losing the draft or refetching the conversa
   await React.act(async()=>document.querySelector('[aria-label="flow.restoreAssistant"]').click());
   assert.equal(document.querySelector('.flow-chat-maximized'),null);assert.equal(calls.filter(url=>url.includes('/status')).length,1);
 });
-test('remembers assistant scope across remounts and isolates it from AI Inbox and other users',async()=>{
+
+test('follows the active mailbox and automatically uses its selected email',async()=>{
   await open();
-  await React.act(async()=>{const select=document.querySelector('select');select.value='work';select.dispatchEvent(new window.Event('change',{bubbles:true}));});
-  assert.equal(localStorage.getItem('mailflow_flow_scope:owner:assistant'),'work');
-  assert.equal(localStorage.getItem('mailflow_flow_scope:owner:inbox'),null);
-  await React.act(async()=>root.unmount());await open();assert.equal(document.querySelector('select').value,'work');
-  await React.act(async()=>root.unmount());await open('another');assert.equal(document.querySelector('select').value,'');
+  globalThis.__flowAssistantState={...globalThis.__flowAssistantState,selectedAccountId:'work',selectedMessageId:'message'};
+  await React.act(async()=>root.render(React.createElement(Assistant)));
+  assert.equal(document.querySelector('select').value,'work');assert.equal(document.querySelector('input[type=checkbox]'),null);assert.match(document.querySelector('.flow-context').textContent,/flow.automaticEmailContext/);
+  assert.equal(localStorage.getItem('mailflow_flow_scope:owner:assistant'),null);
 });
-test('falls back to unified accounts when a saved account is unavailable',async()=>{
-  localStorage.setItem('mailflow_flow_scope:owner:assistant','removed-account');await open();
-  assert.equal(document.querySelector('select').value,'');assert.equal(localStorage.getItem('mailflow_flow_scope:owner:assistant'),'');
+test('follows live AI Inbox selection and does not include stale email context there',async()=>{
+  localStorage.setItem('mailflow_flow_scope:owner:inbox','work');await open();
+  globalThis.__flowAssistantState={...globalThis.__flowAssistantState,pluginView:'flow-inbox',selectedMessageId:'stale'};
+  await React.act(async()=>root.render(React.createElement(Assistant)));
+  assert.equal(document.querySelector('select').value,'work');assert.equal(document.querySelector('.flow-context-auto'),null);
+  await React.act(async()=>window.dispatchEvent(new CustomEvent('mailflow:flow-scope',{detail:{view:'inbox',userId:'owner',value:'personal'}})));
+  assert.equal(document.querySelector('select').value,'personal');
+  const ids=[...document.querySelectorAll('.ecb-root [id]')].map(e=>e.id);assert.equal(new Set(ids).size,ids.length);
 });

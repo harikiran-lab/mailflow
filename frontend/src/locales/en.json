@@ -2018,7 +2018,6 @@
     "close": "Close",
     "accountScope": "Account scope",
     "unifiedAccounts": "Unified inbox accounts",
-    "selectedEmail": "This email",
     "welcome": "Find your flow.",
     "welcomeHelp": "Ask a question, catch up on a conversation, or turn a busy inbox into a clear next step.",
     "briefingPrompt": "What needs my attention in my inbox?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "A calmer inbox starts here.",
     "optInHelp": "Choose the accounts you want analyzed. Your configured AI provider will receive excerpts to suggest actions and summarize updates.",
     "analysisAccounts": "Accounts included in background analysis",
-    "analysisDisclosure": "Opt-in per account. Initially scans up to 500 inbox conversations from the last 30 days, then new inbox mail. Attachments are excluded. New Inbox and Sent mail trigger updates. Existing conversations are reassessed hourly using your configured AI provider.",
     "off": "Off",
     "analyzingHelp": "Analysis runs in the background. You can keep using your mail.",
     "suggestedActions": "Suggested actions",
@@ -2149,6 +2147,24 @@
     "retryHelp": "Analysis paused for this account. Saved detections remain available. Retrying at {{time}}.",
     "maximizeAssistant": "Maximize Flow AI",
     "restoreAssistant": "Restore panel size",
-    "errorDetails": "Last error"
+    "errorDetails": "Last error",
+    "automaticEmailContext": "Current email included automatically",
+    "analysisPaused": "Paused",
+    "inboxPreferences": "Inbox preferences",
+    "priorityHelp": "The top 10 prioritizes personal correspondence, bills, charges, invoices and urgent requests. Bulk categories stay out of the top 10.",
+    "lookbackDays": "Show the last (days)",
+    "excludeCategories": "Hide these categories",
+    "analysisWindowHelp": "Analyzes up to 500 conversations from the last {{days}} days. Attachments are excluded. Inbox and Sent activity trigger updates; conversations are reassessed hourly.",
+    "pausedHelp": "Analysis paused. Saved suggestions remain available.",
+    "analysisReady": "Background analysis is up to date.",
+    "resumeAnalysis": "Resume analysis",
+    "pauseAnalysis": "Pause analysis",
+    "exclusions": {
+      "shopping": "Shopping",
+      "marketing": "Marketing",
+      "surveys": "Surveys",
+      "promotions": "Promotions",
+      "social": "Social"
+    }
   }
 }

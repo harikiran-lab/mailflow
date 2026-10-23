@@ -1,0 +1,247 @@
+
+.ecb-root {
+--ecb-primary: var(--accent);
+--ecb-primary-dark: color-mix(in srgb,var(--accent) 65%,#141523);
+--ecb-secondary: color-mix(in srgb,var(--accent) 45%,#6ee7dc);
+--ecb-bot-body: color-mix(in srgb,var(--accent) 12%,#f8fafc);
+--ecb-visor: #0f172a;
+--ecb-speed: 1;
+overflow: visible;
+}
+
+/* Master Floating Physics */
+.ecb-master-float {
+animation: ecbFloat calc(3.6s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 120px 120px;
+}
+.ecb-shadow {
+animation: ecbShadowPulse calc(3.6s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 120px 214px;
+}
+
+/* Bot Head Bobbing & Tilting */
+.ecb-bot-group {
+animation: ecbBotIdle calc(3.6s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 120px 115px;
+transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Blinking Eyes */
+.ecb-eyes-normal {
+animation: ecbBlink calc(4.2s / var(--ecb-speed)) infinite;
+transform-origin: 120px 82px;
+}
+.ecb-eyes-happy {
+opacity: 0;
+transform: scale(0.8);
+transform-origin: 120px 82px;
+transition: all 0.3s ease;
+}
+
+/* Antenna Pulse */
+.ecb-antenna-orb {
+animation: ecbAntennaGlow calc(2s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 120px 32px;
+}
+.ecb-signal-ring {
+opacity: 0;
+transform-origin: 120px 32px;
+}
+
+/* Envelope Back Flap */
+.ecb-env-flap {
+transform-origin: 120px 112px;
+transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Incoming Letter Sheet (Reading State) */
+.ecb-letter-sheet {
+opacity: 0;
+transform: translateY(25px) scale(0.9);
+transform-origin: 120px 125px;
+transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Chat Bubble & Typing Dots */
+.ecb-chat-bubble {
+opacity: 0;
+transform: scale(0) translate(-15px, 15px);
+transform-origin: 165px 65px;
+transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ecb-dot-1 { animation: ecbDotBounce calc(1.2s / var(--ecb-speed)) infinite 0s; }
+.ecb-dot-2 { animation: ecbDotBounce calc(1.2s / var(--ecb-speed)) infinite 0.18s; }
+.ecb-dot-3 { animation: ecbDotBounce calc(1.2s / var(--ecb-speed)) infinite 0.36s; }
+
+/* Floating Ambient Badges */
+.ecb-badge-at {
+animation: ecbOrbitLeft calc(4.5s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 42px 85px;
+}
+.ecb-paper-plane {
+animation: ecbOrbitRight calc(5s / var(--ecb-speed)) ease-in-out infinite;
+transform-origin: 196px 100px;
+transition: all 0.4s ease;
+}
+.ecb-notif-badge {
+opacity: 0;
+transform: scale(0);
+transform-origin: 182px 114px;
+transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ecb-sparkles {
+opacity: 0;
+transform: scale(0.6);
+transform-origin: 120px 85px;
+transition: all 0.35s ease;
+}
+
+/* ==========================================
+STATE 2: RECEIVING / READING EMAIL
+========================================== */
+.ecb-root.state-reading .ecb-bot-group {
+animation: ecbBotReading calc(2.4s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-reading .ecb-eyes-normal {
+animation: ecbEyesScan calc(1.8s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-reading .ecb-letter-sheet {
+opacity: 1;
+transform: translateY(-6px) scale(1);
+animation: ecbLetterHover calc(2s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-reading .ecb-notif-badge {
+opacity: 1;
+transform: scale(1);
+animation: ecbBadgePulse calc(1.4s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-reading .ecb-signal-ring {
+animation: ecbSignalWave calc(1.6s / var(--ecb-speed)) ease-out infinite;
+}
+
+/* ==========================================
+STATE 3: TYPING AI REPLY
+========================================== */
+.ecb-root.state-typing .ecb-bot-group {
+animation: ecbBotTyping calc(1.6s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-typing .ecb-chat-bubble {
+opacity: 1;
+transform: scale(1) translate(0, 0);
+animation: ecbBubbleFloat calc(2.2s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-typing .ecb-signal-ring {
+animation: ecbSignalWave calc(1.1s / var(--ecb-speed)) ease-out infinite;
+}
+.ecb-root.state-typing .ecb-eyes-normal {
+animation: ecbEyesLookUp calc(2.5s / var(--ecb-speed)) ease-in-out infinite;
+}
+
+/* ==========================================
+STATE 4: SENT / HAPPY
+========================================== */
+.ecb-root.state-sent .ecb-bot-group {
+animation: ecbBotHappyJump calc(1.8s / var(--ecb-speed)) ease-in-out infinite;
+}
+.ecb-root.state-sent .ecb-eyes-normal {
+opacity: 0;
+animation: none;
+}
+.ecb-root.state-sent .ecb-eyes-happy {
+opacity: 1;
+transform: scale(1);
+}
+.ecb-root.state-sent .ecb-paper-plane {
+animation: ecbPlaneLaunch calc(2.2s / var(--ecb-speed)) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.ecb-root.state-sent .ecb-sparkles {
+opacity: 1;
+transform: scale(1);
+animation: ecbSparklePulse calc(1.6s / var(--ecb-speed)) ease-in-out infinite;
+}
+
+/* ==========================================
+KEYFRAME DEFINITIONS
+========================================== */
+@keyframes ecbFloat {
+0%, 100% { transform: translateY(0px); }
+50% { transform: translateY(-9px); }
+}
+@keyframes ecbShadowPulse {
+0%, 100% { transform: scaleX(1); opacity: 0.35; }
+50% { transform: scaleX(0.82); opacity: 0.18; }
+}
+@keyframes ecbBotIdle {
+0%, 100% { transform: translateY(0px) rotate(0deg); }
+50% { transform: translateY(-5px) rotate(1.2deg); }
+}
+@keyframes ecbBotReading {
+0%, 100% { transform: translateY(4px) rotate(-2deg); }
+50% { transform: translateY(1px) rotate(2deg); }
+}
+@keyframes ecbBotTyping {
+0%, 100% { transform: translateY(-3px) rotate(-1.5deg); }
+50% { transform: translateY(-7px) rotate(2.5deg); }
+}
+@keyframes ecbBotHappyJump {
+0%, 100% { transform: translateY(0px) scale(1); }
+35% { transform: translateY(-12px) scale(1.04, 0.97); }
+65% { transform: translateY(-4px) scale(0.98, 1.02); }
+}
+@keyframes ecbBlink {
+0%, 44%, 48%, 92%, 96%, 100% { transform: scaleY(1); }
+46%, 94% { transform: scaleY(0.08); }
+}
+@keyframes ecbEyesScan {
+0%, 100% { transform: translate(-7px, 3px); }
+50% { transform: translate(7px, 3px); }
+}
+@keyframes ecbEyesLookUp {
+0%, 100% { transform: translate(3px, -2px); }
+50% { transform: translate(6px, -4px) scaleY(0.9); }
+}
+@keyframes ecbAntennaGlow {
+0%, 100% { transform: scale(1); filter: brightness(1); }
+50% { transform: scale(1.22); filter: brightness(1.3); }
+}
+@keyframes ecbSignalWave {
+0% { opacity: 0.85; transform: scale(0.8); }
+100% { opacity: 0; transform: scale(2.6); }
+}
+@keyframes ecbDotBounce {
+0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+30% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes ecbBubbleFloat {
+0%, 100% { transform: scale(1) translateY(0px); }
+50% { transform: scale(1.03) translateY(-4px); }
+}
+@keyframes ecbLetterHover {
+0%, 100% { transform: translateY(-5px); }
+50% { transform: translateY(-10px); }
+}
+@keyframes ecbBadgePulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.14); }
+}
+@keyframes ecbOrbitLeft {
+0%, 100% { transform: translate(0px, 0px) rotate(-6deg); }
+50% { transform: translate(-5px, -8px) rotate(6deg); }
+}
+@keyframes ecbOrbitRight {
+0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+50% { transform: translate(6px, -7px) rotate(-8deg); }
+}
+@keyframes ecbPlaneLaunch {
+0% { transform: translate(-20px, 15px) scale(0.5); opacity: 0; }
+25% { transform: translate(0px, 0px) scale(1.05); opacity: 1; }
+75% { transform: translate(22px, -24px) scale(1); opacity: 1; }
+100% { transform: translate(38px, -40px) scale(0.7); opacity: 0; }
+}
+@keyframes ecbSparklePulse {
+0%, 100% { transform: scale(0.92) rotate(0deg); opacity: 0.8; }
+50% { transform: scale(1.08) rotate(8deg); opacity: 1; }
+}
+
+.ecb-root{display:block;flex-shrink:0;pointer-events:none}.ecb-root.state-paused *{animation-play-state:paused!important}.ecb-root.state-error{--ecb-secondary:var(--danger,#f87171)}
+@media(prefers-reduced-motion:reduce){.ecb-root *{animation:none!important;transition:none!important}}

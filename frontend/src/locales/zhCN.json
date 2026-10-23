@@ -2018,7 +2018,6 @@
     "close": "关闭",
     "accountScope": "账号范围",
     "unifiedAccounts": "统一收件箱账号",
-    "selectedEmail": "这封邮件",
     "welcome": "找到你的节奏。",
     "welcomeHelp": "提出问题、跟进对话，找到清晰的下一步。",
     "briefingPrompt": "收件箱中有哪些内容需要我关注？",
@@ -2073,7 +2072,6 @@
     "makeRoom": "更从容的收件箱，从这里开始。",
     "optInHelp": "选择要分析的账号。配置的 AI 服务商将接收邮件片段，用于建议任务和总结更新。",
     "analysisAccounts": "后台分析的账号",
-    "analysisDisclosure": "每个账号单独选择启用。首次分析近 30 天内最多 500 个收件箱对话，之后分析新邮件。不包含附件。 新的收件和已发送邮件会触发更新。现有会话每小时由配置的 AI 服务商重新评估一次。",
     "off": "关闭",
     "analyzingHelp": "分析在后台进行，你可以继续使用邮件。",
     "suggestedActions": "建议任务",
@@ -2149,6 +2147,24 @@
     "retryHelp": "此账户的分析已暂停。已保存的建议仍然可用。将在 {{time}} 重试。",
     "maximizeAssistant": "最大化 Flow AI",
     "restoreAssistant": "恢复面板大小",
-    "errorDetails": "最近错误"
+    "errorDetails": "最近错误",
+    "automaticEmailContext": "自动包含当前邮件",
+    "analysisPaused": "已暂停",
+    "inboxPreferences": "收件箱偏好设置",
+    "priorityHelp": "前十项优先显示个人往来、账单、扣款、发票和紧急请求，排除群发类别。",
+    "lookbackDays": "显示最近天数",
+    "excludeCategories": "隐藏这些类别",
+    "analysisWindowHelp": "分析最近 {{days}} 天内最多 500 个会话，不含附件。收件和发件活动触发更新，每小时重新评估。",
+    "pausedHelp": "分析已暂停，已保存的建议仍然可用。",
+    "analysisReady": "后台分析已更新。",
+    "resumeAnalysis": "继续分析",
+    "pauseAnalysis": "暂停分析",
+    "exclusions": {
+      "shopping": "购物",
+      "marketing": "营销",
+      "surveys": "问卷调查",
+      "promotions": "促销",
+      "social": "社交"
+    }
   }
 }

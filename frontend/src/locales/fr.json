@@ -2018,7 +2018,6 @@
     "close": "Fermer",
     "accountScope": "Périmètre des comptes",
     "unifiedAccounts": "Comptes de la boîte unifiée",
-    "selectedEmail": "Cet e-mail",
     "welcome": "Trouvez votre rythme.",
     "welcomeHelp": "Posez une question, rattrapez une conversation et trouvez la prochaine étape.",
     "briefingPrompt": "Qu’est-ce qui nécessite mon attention dans ma boîte de réception ?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "Une boîte plus sereine commence ici.",
     "optInHelp": "Choisissez les comptes à analyser. Le fournisseur IA configuré recevra des extraits pour suggérer des actions et résumer les nouvelles.",
     "analysisAccounts": "Comptes analysés en arrière-plan",
-    "analysisDisclosure": "Activation par compte. Jusqu’à 500 conversations des 30 derniers jours, puis les nouveaux e-mails. Pièces jointes exclues. Les nouveaux messages reçus et envoyés déclenchent une mise à jour. Les conversations existantes sont réévaluées chaque heure avec votre fournisseur IA.",
     "off": "Désactivé",
     "analyzingHelp": "L’analyse continue en arrière-plan. Vous pouvez utiliser vos e-mails.",
     "suggestedActions": "Actions suggérées",
@@ -2149,6 +2147,24 @@
     "retryHelp": "L’analyse de ce compte est suspendue. Les suggestions enregistrées restent disponibles. Nouvel essai à {{time}}.",
     "maximizeAssistant": "Agrandir Flow AI",
     "restoreAssistant": "Rétablir la taille du panneau",
-    "errorDetails": "Dernière erreur"
+    "errorDetails": "Dernière erreur",
+    "automaticEmailContext": "E-mail actuel inclus automatiquement",
+    "analysisPaused": "En pause",
+    "inboxPreferences": "Préférences de la boîte",
+    "priorityHelp": "Les 10 premiers privilégient les échanges personnels, factures, prélèvements et demandes urgentes. Les catégories de masse sont exclues.",
+    "lookbackDays": "Afficher les derniers jours",
+    "excludeCategories": "Masquer ces catégories",
+    "analysisWindowHelp": "Analyse jusqu’à 500 conversations des {{days}} derniers jours sans pièces jointes. Les messages reçus et envoyés déclenchent des mises à jour ; réévaluation horaire.",
+    "pausedHelp": "Analyse en pause. Les suggestions enregistrées restent disponibles.",
+    "analysisReady": "L’analyse en arrière-plan est à jour.",
+    "resumeAnalysis": "Reprendre l’analyse",
+    "pauseAnalysis": "Mettre l’analyse en pause",
+    "exclusions": {
+      "shopping": "Achats",
+      "marketing": "Publicité",
+      "surveys": "Sondages",
+      "promotions": "Offres promotionnelles",
+      "social": "Réseaux sociaux"
+    }
   }
 }

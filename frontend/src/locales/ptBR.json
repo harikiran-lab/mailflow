@@ -2018,7 +2018,6 @@
     "close": "Fechar",
     "accountScope": "Escopo das contas",
     "unifiedAccounts": "Contas da caixa unificada",
-    "selectedEmail": "Este e-mail",
     "welcome": "Encontre seu ritmo.",
     "welcomeHelp": "Faça perguntas, acompanhe conversas e encontre o próximo passo.",
     "briefingPrompt": "O que precisa da minha atenção na caixa de entrada?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "Uma caixa mais tranquila começa aqui.",
     "optInHelp": "Escolha as contas para análise. O provedor de IA receberá trechos para sugerir ações e resumir novidades.",
     "analysisAccounts": "Contas incluídas na análise em segundo plano",
-    "analysisDisclosure": "Ativação por conta. Até 500 conversas dos últimos 30 dias, depois novos e-mails. Anexos excluídos. Novas mensagens recebidas e enviadas acionam atualizações. As conversas existentes são reavaliadas a cada hora com o provedor de IA configurado.",
     "off": "Desativado",
     "analyzingHelp": "A análise ocorre em segundo plano. Você pode continuar usando seus e-mails.",
     "suggestedActions": "Ações sugeridas",
@@ -2149,6 +2147,24 @@
     "retryHelp": "A análise desta conta está pausada. As sugestões salvas continuam disponíveis. Nova tentativa às {{time}}.",
     "maximizeAssistant": "Ampliar Flow AI",
     "restoreAssistant": "Restaurar tamanho do painel",
-    "errorDetails": "Último problema"
+    "errorDetails": "Último problema",
+    "automaticEmailContext": "E-mail atual incluído automaticamente",
+    "analysisPaused": "Pausado",
+    "inboxPreferences": "Preferências da caixa",
+    "priorityHelp": "Os 10 primeiros priorizam mensagens pessoais, contas, cobranças, faturas e pedidos urgentes. Categorias em massa ficam de fora.",
+    "lookbackDays": "Mostrar os últimos dias",
+    "excludeCategories": "Ocultar estas categorias",
+    "analysisWindowHelp": "Analisa até 500 conversas dos últimos {{days}} dias sem anexos. Mensagens recebidas e enviadas acionam atualizações; reavaliação a cada hora.",
+    "pausedHelp": "Análise pausada. As sugestões salvas continuam disponíveis.",
+    "analysisReady": "A análise em segundo plano está atualizada.",
+    "resumeAnalysis": "Retomar análise",
+    "pauseAnalysis": "Pausar a análise",
+    "exclusions": {
+      "shopping": "Compras online",
+      "marketing": "Publicidade",
+      "surveys": "Pesquisas",
+      "promotions": "Ofertas promocionais",
+      "social": "Mídias sociais"
+    }
   }
 }

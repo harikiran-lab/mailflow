@@ -11,6 +11,7 @@ export function useFlowScope(view,userId,fallback='') {
   const setScope=useCallback(value=>{
     if(userId)try{localStorage.setItem(key(view,userId),value);}catch{/* Storage may be disabled. */}
     setChoice({userId,value});
+    window.dispatchEvent(new CustomEvent('mailflow:flow-scope',{detail:{view,userId,value}}));
   },[view,userId]);
   return [scope,setScope];
 }

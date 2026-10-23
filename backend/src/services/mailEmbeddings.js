@@ -69,7 +69,7 @@ export async function embedMailTexts(c,texts,signal) {
   }
 }
 const fingerprint=c=>`${c.model}:chunks-v2:${hash(c.base_url).slice(0,16)}`;
-export async function indexMailEmbeddings(userId,messages,checkAccess) {
+export async function indexMailEmbeddings(userId,messages,checkAccess,signal) {
   const c=await embeddingConfig({secret:true});if(!c.enabled)return;
   for(let i=0;i<messages.length;i+=8){
     await checkAccess();
@@ -79,7 +79,7 @@ export async function indexMailEmbeddings(userId,messages,checkAccess) {
       if(!exists.rows.length)missing.push(m);
     }
     if(!missing.length)continue;
-    const vectors=await embedMailTexts(c,missing.map(textFor));
+    const vectors=await embedMailTexts(c,missing.map(textFor),signal);
     await checkAccess();
     for(let j=0;j<missing.length;j++){
       const m=missing[j];

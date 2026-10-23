@@ -2037,7 +2037,6 @@
     "close": "Zamknij",
     "accountScope": "Zakres kont",
     "unifiedAccounts": "Konta wspólnej skrzynki",
-    "selectedEmail": "Ta wiadomość",
     "welcome": "Znajdź swój rytm.",
     "welcomeHelp": "Zadawaj pytania, nadrabiaj rozmowy i znajdź kolejny krok.",
     "briefingPrompt": "Co wymaga mojej uwagi w skrzynce?",
@@ -2092,7 +2091,6 @@
     "makeRoom": "Spokojniejsza skrzynka zaczyna się tutaj.",
     "optInHelp": "Wybierz konta do analizy. Dostawca AI otrzyma fragmenty do proponowania działań i podsumowań.",
     "analysisAccounts": "Konta analizowane w tle",
-    "analysisDisclosure": "Włączane osobno dla konta. Najpierw do 500 rozmów z ostatnich 30 dni, potem nowa poczta. Bez załączników. Nowe wiadomości odebrane i wysłane uruchamiają aktualizacje. Istniejące rozmowy są ponownie oceniane co godzinę przez skonfigurowanego dostawcę AI.",
     "off": "Wyłączone",
     "analyzingHelp": "Analiza działa w tle. Możesz nadal korzystać z poczty.",
     "suggestedActions": "Sugerowane działania",
@@ -2168,6 +2166,24 @@
     "retryHelp": "Analiza tego konta jest wstrzymana. Zapisane sugestie są nadal dostępne. Ponowienie o {{time}}.",
     "maximizeAssistant": "Maksymalizuj Flow AI",
     "restoreAssistant": "Przywróć rozmiar panelu",
-    "errorDetails": "Ostatni błąd"
+    "errorDetails": "Ostatni błąd",
+    "automaticEmailContext": "Bieżący e-mail dołączany automatycznie",
+    "analysisPaused": "Wstrzymano",
+    "inboxPreferences": "Preferencje skrzynki",
+    "priorityHelp": "Pierwsza dziesiątka wyróżnia osobistą korespondencję, rachunki, obciążenia, faktury i pilne prośby. Kategorie masowe są pomijane.",
+    "lookbackDays": "Pokaż ostatnie dni",
+    "excludeCategories": "Ukryj te kategorie",
+    "analysisWindowHelp": "Analizuje do 500 rozmów z ostatnich {{days}} dni bez załączników. Poczta przychodząca i wysłana wyzwala aktualizacje; ponowna ocena co godzinę.",
+    "pausedHelp": "Analiza wstrzymana. Zapisane sugestie pozostają dostępne.",
+    "analysisReady": "Analiza w tle jest aktualna.",
+    "resumeAnalysis": "Wznów analizę",
+    "pauseAnalysis": "Wstrzymaj analizę",
+    "exclusions": {
+      "shopping": "Zakupy",
+      "marketing": "Treści reklamowe",
+      "surveys": "Ankiety",
+      "promotions": "Oferty promocyjne",
+      "social": "Sieci społecznościowe"
+    }
   }
 }

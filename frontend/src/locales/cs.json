@@ -2037,7 +2037,6 @@
     "close": "Zavřít",
     "accountScope": "Rozsah účtů",
     "unifiedAccounts": "Účty sjednocené schránky",
-    "selectedEmail": "Tento e-mail",
     "welcome": "Najděte svůj rytmus.",
     "welcomeHelp": "Ptejte se, dožeňte konverzace a najděte další krok.",
     "briefingPrompt": "Co ve schránce vyžaduje mou pozornost?",
@@ -2092,7 +2091,6 @@
     "makeRoom": "Klidnější schránka začíná zde.",
     "optInHelp": "Vyberte účty k analýze. Nastavený poskytovatel AI obdrží úryvky pro návrhy úkolů a shrnutí.",
     "analysisAccounts": "Účty pro analýzu na pozadí",
-    "analysisDisclosure": "Zapnutí pro každý účet. Nejprve nejvýše 500 konverzací za posledních 30 dní, poté nová pošta. Bez příloh. Nová pošta v doručených a odeslaných zprávách spouští aktualizace. Stávající konverzace se znovu vyhodnocují každou hodinu pomocí nastaveného poskytovatele AI.",
     "off": "Vypnuto",
     "analyzingHelp": "Analýza běží na pozadí. Poštu můžete dál používat.",
     "suggestedActions": "Navržené úkoly",
@@ -2168,6 +2166,24 @@
     "retryHelp": "Analýza tohoto účtu je pozastavena. Uložené návrhy zůstávají dostupné. Další pokus v {{time}}.",
     "maximizeAssistant": "Maximalizovat Flow AI",
     "restoreAssistant": "Obnovit velikost panelu",
-    "errorDetails": "Poslední chyba"
+    "errorDetails": "Poslední chyba",
+    "automaticEmailContext": "Aktuální e-mail se zahrnuje automaticky",
+    "analysisPaused": "Pozastaveno",
+    "inboxPreferences": "Předvolby schránky",
+    "priorityHelp": "Prvních 10 upřednostňuje osobní korespondenci, účty, platby, faktury a naléhavé žádosti. Hromadné zprávy jsou vynechány.",
+    "lookbackDays": "Zobrazit poslední dny",
+    "excludeCategories": "Skrýt tyto kategorie",
+    "analysisWindowHelp": "Analyzuje až 500 konverzací za posledních {{days}} dní bez příloh. Aktivita v doručené a odeslané poště spouští aktualizace; přehodnocení probíhá každou hodinu.",
+    "pausedHelp": "Analýza pozastavena. Uložené návrhy jsou nadále dostupné.",
+    "analysisReady": "Analýza na pozadí je aktuální.",
+    "resumeAnalysis": "Pokračovat v analýze",
+    "pauseAnalysis": "Pozastavit analýzu",
+    "exclusions": {
+      "shopping": "Nakupování",
+      "marketing": "Propagační obsah",
+      "surveys": "Průzkumy",
+      "promotions": "Slevové akce",
+      "social": "Sociální sítě"
+    }
   }
 }

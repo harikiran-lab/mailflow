@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import { requireAuth, isPluginActivated, flowStatus, setFlowAccount, requestFlowRefresh, flowInbox, dismissFlowItem, runFlowChat, flowConversations, deleteFlowConversation, flowIngest, flowEventsActive, prepareFlowAction, confirmFlowAction, getFlowAction, resolveFlowSource } from '../api.js';
+import { requireAuth, isPluginActivated, flowStatus, setFlowPreferences, setFlowAnalysis, setFlowAccount, requestFlowRefresh, flowInbox, dismissFlowItem, runFlowChat, flowConversations, deleteFlowConversation, flowIngest, flowEventsActive, prepareFlowAction, confirmFlowAction, getFlowAction, resolveFlowSource } from '../api.js';
 
 const router=Router();
 router.use(requireAuth);
 router.use(async(req,res,next)=>await isPluginActivated(req.session.userId,'flow')?next():res.status(409).json({error:'Enable Flow AI in Settings → Plugins first.'}));
 const handle=fn=>async(req,res)=>{try{res.json(await fn(req));}catch(e){res.status(e.status>=400&&e.status<600?e.status:500).json({error:e.status?e.message:'Flow AI could not finish. Try again.'});}};
 router.get('/status',handle(req=>flowStatus(req.session.userId)));
+router.patch('/preferences',handle(req=>setFlowPreferences(req.session.userId,req.body)));
+router.patch('/analysis',handle(req=>setFlowAnalysis(req.session.userId,req.body)));
 router.patch('/accounts',handle(req=>setFlowAccount(req.session.userId,req.body)));
 router.get('/inbox',handle(req=>flowInbox(req.session.userId,req.query.account_id?{account_ids:[req.query.account_id]}:{})));
 router.post('/refresh',handle(req=>requestFlowRefresh(req.session.userId,req.body)));

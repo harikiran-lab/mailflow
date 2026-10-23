@@ -2018,7 +2018,6 @@
     "close": "Chiudi",
     "accountScope": "Ambito degli account",
     "unifiedAccounts": "Account della posta unificata",
-    "selectedEmail": "Questa e-mail",
     "welcome": "Trova il tuo ritmo.",
     "welcomeHelp": "Fai una domanda, recupera una conversazione e trova il prossimo passo.",
     "briefingPrompt": "Cosa richiede la mia attenzione nella posta in arrivo?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "Una posta più serena inizia qui.",
     "optInHelp": "Scegli gli account da analizzare. Il fornitore IA riceverà estratti per suggerire attività e riassumere aggiornamenti.",
     "analysisAccounts": "Account analizzati in background",
-    "analysisDisclosure": "Attivazione per account. Fino a 500 conversazioni degli ultimi 30 giorni, poi nuovi messaggi. Allegati esclusi. I nuovi messaggi ricevuti e inviati attivano gli aggiornamenti. Le conversazioni esistenti vengono rivalutate ogni ora con il fornitore IA configurato.",
     "off": "Disattivato",
     "analyzingHelp": "L’analisi prosegue in background. Puoi continuare a usare la posta.",
     "suggestedActions": "Attività suggerite",
@@ -2149,6 +2147,24 @@
     "retryHelp": "L’analisi di questo account è in pausa. I suggerimenti salvati restano disponibili. Nuovo tentativo alle {{time}}.",
     "maximizeAssistant": "Ingrandisci Flow AI",
     "restoreAssistant": "Ripristina dimensione del pannello",
-    "errorDetails": "Ultimo errore"
+    "errorDetails": "Ultimo errore",
+    "automaticEmailContext": "Email attuale inclusa automaticamente",
+    "analysisPaused": "In pausa",
+    "inboxPreferences": "Preferenze della posta",
+    "priorityHelp": "I primi 10 danno priorità a messaggi personali, bollette, addebiti, fatture e richieste urgenti. Le categorie di massa sono escluse.",
+    "lookbackDays": "Mostra gli ultimi giorni",
+    "excludeCategories": "Nascondi queste categorie",
+    "analysisWindowHelp": "Analizza fino a 500 conversazioni degli ultimi {{days}} giorni senza allegati. I messaggi ricevuti e inviati attivano aggiornamenti; rivalutazione ogni ora.",
+    "pausedHelp": "Analisi in pausa. I suggerimenti salvati restano disponibili.",
+    "analysisReady": "L’analisi in background è aggiornata.",
+    "resumeAnalysis": "Riprendi analisi",
+    "pauseAnalysis": "Metti in pausa l’analisi",
+    "exclusions": {
+      "shopping": "Acquisti",
+      "marketing": "Pubblicità",
+      "surveys": "Sondaggi",
+      "promotions": "Offerte promozionali",
+      "social": "Reti sociali"
+    }
   }
 }

@@ -13,7 +13,7 @@ import { createToken,developerPolicy,hashToken,createWebhook,queueEvent,deliverW
 import { ownedAccounts,ownedMessage,searchMail,readMail,bindMailCapability } from './mailCapabilities.js';
 import { prepareAction,confirmAction } from './actionProposals.js';
 import { availableTools,executeMailTool } from './mailTools.js';
-import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh,dismissFlowItem } from './flowAI.js';
+import { parseInboxItems,runFlowChat,setFlowAccount,tickIntegrations,flowInbox,enqueueFlow,flowIngest,scheduleFlowReassessments,requestFlowRefresh,dismissFlowItem,setFlowPreferences,setFlowAnalysis,flowStatus } from './flowAI.js';
 import { invalidateActivationCache } from '../plugins/activation.js';
 import { externalRoutes,mcpRoutes } from '../routes/developer.js';
 
@@ -222,7 +222,7 @@ describe('background analysis and signed durable events',()=>{
     await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();state.complete.mockClear();
     await scheduleFlowReassessments();expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('done');
     await query("UPDATE integration_jobs SET last_reassessed_at=NOW()-INTERVAL '2 hours' WHERE account_id=$1",[A]);
-    await query("UPDATE messages SET date=NOW()-INTERVAL '20 days',synced_at=NOW()-INTERVAL '20 days' WHERE id=$1",[M]);
+    await query("UPDATE messages SET date=NOW()-INTERVAL '6 days',synced_at=NOW()-INTERVAL '6 days' WHERE id=$1",[M]);
     await scheduleFlowReassessments();await scheduleFlowReassessments();await tickIntegrations();
     expect(state.complete).toHaveBeenCalledTimes(1);
     const job=(await query('SELECT * FROM integration_jobs WHERE account_id=$1',[A])).rows[0];expect(job.status).toBe('done');expect(job.full_reassessment_at).toBeNull();expect(job.last_reassessed_at).toBeTruthy();
@@ -278,5 +278,39 @@ describe('background analysis and signed durable events',()=>{
   it('halts delivery when the administrator disables webhooks',async()=>{
     await createWebhook(U,{url:'https://automation.example/webhook',events:['mail.received'],account_ids:[A]});await queueEvent(U,A,'mail.received',{});
     await saveDeveloperPolicy({api:true,mcp:true,webhooks:false});await deliverWebhookBatch();expect(state.fetch).not.toHaveBeenCalled();expect((await developerPolicy()).webhooks).toBe(false);
+  });
+});
+
+describe('Inbox preferences and durable pause controls',()=>{
+  it('defaults to seven days, filters saved items and persists per-user preferences',async()=>{
+    expect((await flowStatus(U)).preferences.days).toBe(7);
+    state.complete.mockResolvedValue(JSON.stringify({items:[{message_id:M,kind:'topic',category:'promotions',attention:'low',title:'Offer',summary:'A marketing offer',quote:'Please review'}]}));
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect((await flowInbox(U)).items).toHaveLength(0);
+    await setFlowPreferences(U,{days:14,excluded_categories:[]});expect((await flowInbox(U)).items).toHaveLength(1);
+    expect((await flowStatus(U)).preferences).toEqual({days:14,excluded_categories:[]});
+    expect((await flowStatus(V)).preferences.days).toBe(7);
+    await expect(setFlowPreferences(U,{days:0,excluded_categories:[]})).rejects.toMatchObject({status:400});
+    await expect(setFlowPreferences(U,{days:7,excluded_categories:['unknown']})).rejects.toMatchObject({status:400});
+  });
+  it('honors the configured scan window and allows widening it',async()=>{
+    await query("UPDATE messages SET date=NOW()-INTERVAL '10 days',synced_at=NOW()-INTERVAL '10 days' WHERE id=$1",[M]);
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();expect(state.complete).not.toHaveBeenCalled();
+    await setFlowPreferences(U,{days:14,excluded_categories:[]});await tickIntegrations();expect(state.complete).toHaveBeenCalledTimes(1);
+  });
+  it('keeps paused jobs paused across ingest and scheduling, then resumes',async()=>{
+    await setFlowAccount(U,{account_id:A,enabled:true});await setFlowAnalysis(U,{account_ids:[A],paused:true});
+    await enqueueFlow(U,A,{full:true});await scheduleFlowReassessments();await tickIntegrations();
+    expect(state.complete).not.toHaveBeenCalled();expect((await flowStatus(U)).accounts[0]).toMatchObject({config:{paused:true},job:{status:'paused',error:null}});
+    await expect(setFlowAnalysis(U,{account_ids:[A,B],paused:false})).rejects.toMatchObject({status:403});
+    expect((await flowStatus(U)).accounts[0].config.paused).toBe(true);
+    await setFlowAnalysis(U,{account_ids:[A],paused:false});await tickIntegrations();expect(state.complete).toHaveBeenCalledTimes(1);
+  });
+  it('cancels an active provider request without recording a provider failure',async()=>{
+    await setFlowAccount(U,{account_id:A,enabled:true});let ready;const started=new Promise(r=>{ready=r;});
+    state.complete.mockImplementationOnce(async(_messages,{signal})=>{ready();return new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));});
+    const work=tickIntegrations();await started;await setFlowAnalysis(U,{account_ids:[A],paused:true});await work;
+    expect((await flowStatus(U)).accounts[0].job).toMatchObject({status:'paused',error:null,attempts:0});
+    state.complete.mockResolvedValue('{"items":[]}');await setFlowAnalysis(U,{account_ids:[A],paused:false});await tickIntegrations();expect((await flowStatus(U)).accounts[0].job.status).toBe('done');
   });
 });

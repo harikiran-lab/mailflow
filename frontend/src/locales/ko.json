@@ -2018,7 +2018,6 @@
     "close": "닫기",
     "accountScope": "계정 범위",
     "unifiedAccounts": "통합 받은편지함 계정",
-    "selectedEmail": "이 이메일",
     "welcome": "나만의 흐름을 찾으세요.",
     "welcomeHelp": "질문하고 대화를 따라잡으며 명확한 다음 단계를 찾으세요.",
     "briefingPrompt": "받은편지함에서 주의가 필요한 내용은 무엇인가요?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "차분한 받은편지함은 여기서 시작됩니다.",
     "optInHelp": "분석할 계정을 선택하세요. 설정된 AI 제공업체가 작업 제안과 요약을 위해 이메일 일부를 받습니다.",
     "analysisAccounts": "백그라운드 분석 계정",
-    "analysisDisclosure": "계정별로 동의가 필요합니다. 처음에는 최근 30일 내 최대 500개 대화, 이후 새 수신 메일을 분석합니다. 첨부파일은 제외됩니다. 새 받은 메일과 보낸 메일이 업데이트를 실행합니다. 기존 대화는 설정된 AI 제공업체를 통해 매시간 다시 평가됩니다.",
     "off": "끔",
     "analyzingHelp": "분석은 백그라운드에서 실행됩니다. 계속 이메일을 사용할 수 있습니다.",
     "suggestedActions": "추천 작업",
@@ -2149,6 +2147,24 @@
     "retryHelp": "이 계정의 분석이 일시 중지되었습니다. 저장된 제안은 계속 볼 수 있습니다. {{time}}에 재시도합니다.",
     "maximizeAssistant": "Flow AI 최대화",
     "restoreAssistant": "패널 크기 복원",
-    "errorDetails": "마지막 오류"
+    "errorDetails": "마지막 오류",
+    "automaticEmailContext": "현재 이메일 자동 포함",
+    "analysisPaused": "일시 중지됨",
+    "inboxPreferences": "받은편지함 환경설정",
+    "priorityHelp": "상위 10개는 개인 메일, 청구서, 결제 내역, 송장 및 긴급 요청을 우선합니다. 대량 메일 유형은 제외됩니다.",
+    "lookbackDays": "최근 표시 일수",
+    "excludeCategories": "다음 유형 숨기기",
+    "analysisWindowHelp": "최근 {{days}}일 동안 최대 500개 대화를 첨부파일 없이 분석합니다. 수신 및 발신 활동 시 업데이트하고 매시간 재평가합니다.",
+    "pausedHelp": "분석이 일시 중지되었습니다. 저장된 제안은 계속 사용할 수 있습니다.",
+    "analysisReady": "백그라운드 분석이 최신 상태입니다.",
+    "resumeAnalysis": "분석 재개",
+    "pauseAnalysis": "분석 일시 중지",
+    "exclusions": {
+      "shopping": "쇼핑",
+      "marketing": "마케팅",
+      "surveys": "설문조사",
+      "promotions": "프로모션",
+      "social": "소셜"
+    }
   }
 }

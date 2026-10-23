@@ -2018,7 +2018,6 @@
     "close": "Schließen",
     "accountScope": "Kontenauswahl",
     "unifiedAccounts": "Konten des gemeinsamen Posteingangs",
-    "selectedEmail": "Diese E-Mail",
     "welcome": "Finde deinen Flow.",
     "welcomeHelp": "Stelle Fragen, hole Gespräche nach und finde den nächsten Schritt.",
     "briefingPrompt": "Was braucht meine Aufmerksamkeit im Posteingang?",
@@ -2073,7 +2072,6 @@
     "makeRoom": "Hier beginnt ein ruhigerer Posteingang.",
     "optInHelp": "Wähle Konten zur Analyse. Der konfigurierte KI-Anbieter erhält Auszüge für Aufgaben und Zusammenfassungen.",
     "analysisAccounts": "Konten für die Hintergrundanalyse",
-    "analysisDisclosure": "Opt-in je Konto. Zuerst bis zu 500 Posteingangsgespräche der letzten 30 Tage, danach neue E-Mails. Ohne Anhänge. Neue eingehende und gesendete Nachrichten lösen Aktualisierungen aus. Bestehende Unterhaltungen werden stündlich mit deinem KI-Anbieter neu bewertet.",
     "off": "Aus",
     "analyzingHelp": "Die Analyse läuft im Hintergrund. Deine E-Mails bleiben nutzbar.",
     "suggestedActions": "Vorgeschlagene Aufgaben",
@@ -2149,6 +2147,24 @@
     "retryHelp": "Die Analyse dieses Kontos pausiert. Gespeicherte Vorschläge bleiben verfügbar. Neuer Versuch um {{time}}.",
     "maximizeAssistant": "Flow AI maximieren",
     "restoreAssistant": "Panelgröße wiederherstellen",
-    "errorDetails": "Letzter Fehler"
+    "errorDetails": "Letzter Fehler",
+    "automaticEmailContext": "Aktuelle E-Mail automatisch einbezogen",
+    "analysisPaused": "Pausiert",
+    "inboxPreferences": "Posteingangseinstellungen",
+    "priorityHelp": "Die Top 10 bevorzugt persönliche Nachrichten, Rechnungen, Abbuchungen und dringende Anliegen. Massenkategorien bleiben ausgeschlossen.",
+    "lookbackDays": "Letzte Tage anzeigen",
+    "excludeCategories": "Diese Kategorien ausblenden",
+    "analysisWindowHelp": "Analysiert bis zu 500 Unterhaltungen der letzten {{days}} Tage ohne Anhänge. Eingehende und gesendete Nachrichten lösen Aktualisierungen aus; stündliche Neubewertung.",
+    "pausedHelp": "Analyse pausiert. Gespeicherte Vorschläge bleiben verfügbar.",
+    "analysisReady": "Die Hintergrundanalyse ist aktuell.",
+    "resumeAnalysis": "Analyse fortsetzen",
+    "pauseAnalysis": "Analyse pausieren",
+    "exclusions": {
+      "shopping": "Einkaufen",
+      "marketing": "Werbung",
+      "surveys": "Umfragen",
+      "promotions": "Angebote",
+      "social": "Soziale Netzwerke"
+    }
   }
 }
