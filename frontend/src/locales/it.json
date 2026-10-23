@@ -2146,8 +2146,9 @@
     "atAGlance": "A colpo d’occhio",
     "summaryHelp": "Un breve riepilogo dei suggerimenti qui sotto. Apri un titolo per leggere l’email di origine.",
     "retryQueued": "Nuovo tentativo programmato",
-    "retryHelp": "L’analisi è in pausa dopo un errore del fornitore. I risultati salvati restano disponibili. Nuovo tentativo alle {{time}}.",
+    "retryHelp": "L’analisi di questo account è in pausa. I suggerimenti salvati restano disponibili. Nuovo tentativo alle {{time}}.",
     "maximizeAssistant": "Ingrandisci Flow AI",
-    "restoreAssistant": "Ripristina dimensione del pannello"
+    "restoreAssistant": "Ripristina dimensione del pannello",
+    "errorDetails": "Ultimo errore"
   }
 }

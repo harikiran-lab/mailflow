@@ -2146,8 +2146,9 @@
     "atAGlance": "En un coup d’œil",
     "summaryHelp": "Un bref aperçu des suggestions ci-dessous. Ouvrez un titre pour lire le courriel source.",
     "retryQueued": "Nouvelle tentative prévue",
-    "retryHelp": "L’analyse est suspendue après une erreur du fournisseur. Les résultats enregistrés restent disponibles. Nouvel essai à {{time}}.",
+    "retryHelp": "L’analyse de ce compte est suspendue. Les suggestions enregistrées restent disponibles. Nouvel essai à {{time}}.",
     "maximizeAssistant": "Agrandir Flow AI",
-    "restoreAssistant": "Rétablir la taille du panneau"
+    "restoreAssistant": "Rétablir la taille du panneau",
+    "errorDetails": "Dernière erreur"
   }
 }

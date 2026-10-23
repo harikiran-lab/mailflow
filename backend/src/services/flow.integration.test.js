@@ -143,8 +143,23 @@ describe('background analysis and signed durable events',()=>{
     state.complete.mockResolvedValueOnce('{"items":[').mockResolvedValueOnce('{"items":[]}');
     await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
     expect(state.complete).toHaveBeenCalledTimes(2);
-    expect(state.complete.mock.calls[0][1].timeoutMs).toBe(120000);
+    expect(state.complete.mock.calls[0][1]).toMatchObject({timeoutMs:240000,maxTokens:16384,temperature:0.1});
+    expect(state.complete.mock.calls[1][1].maxTokens).toBe(32768);
     expect((await query('SELECT status,error FROM integration_jobs WHERE account_id=$1',[A])).rows[0]).toMatchObject({status:'done',error:null});
+  });
+  it('preserves successful single-source retries even when the next reasoning completion is truncated',async()=>{
+    const extra='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,body_text) VALUES($1,$2,7,'INBOX','<extra>','extra-thread',NOW()-INTERVAL '1 minute','A separate message')",[extra,A]);
+    const limited=()=>Object.assign(Error('Output token limit reached'),{status:502,code:'AI_OUTPUT_LIMIT'});
+    state.complete.mockRejectedValueOnce(limited()).mockResolvedValueOnce(JSON.stringify({items:[{message_id:M,kind:'action',title:'Review contract',summary:'Please review',quote:'Please review the contract by Friday.'}]})).mockRejectedValueOnce(limited());
+    await setFlowAccount(U,{account_id:A,enabled:true});await tickIntegrations();
+    expect(state.complete.mock.calls.map(c=>c[1].maxTokens)).toEqual([16384,32768,32768]);
+    expect(state.complete.mock.calls[0][1].jsonSchema.properties.items.items.properties.message_id.enum).toEqual([M,extra]);
+    const partial=await flowInbox(U);expect(partial.items).toHaveLength(1);expect(partial.accounts[0].scanned).toBe(1);
+    expect((await query('SELECT status,error FROM integration_jobs WHERE account_id=$1',[A])).rows[0]).toMatchObject({status:'pending',error:'Output token limit reached'});
+    state.complete.mockClear().mockResolvedValue('{"items":[]}');await requestFlowRefresh(U,{account_ids:[A]});await tickIntegrations();
+    expect(state.complete).toHaveBeenCalledTimes(1);expect(JSON.parse(state.complete.mock.calls[0][0][1].content).sources.map(s=>s.message_id)).toEqual([extra]);
+    expect((await flowInbox(U)).items).toHaveLength(1);expect((await query('SELECT status FROM integration_jobs WHERE account_id=$1',[A])).rows[0].status).toBe('done');
   });
   it('preserves completed batches across provider failures and resumes only unfinished mail',async()=>{
     for(let i=0;i<5;i++)await query("INSERT INTO messages(id,account_id,uid,folder,message_id,thread_id,date,from_email,body_text) VALUES($1,$2,$3,'INBOX',$4,$4,NOW()-INTERVAL '1 minute','sender@example.com','A message')",[`eeeeeeee-eeee-4eee-8eee-${String(i).padStart(12,'0')}`,A,10+i,`extra${i}`]);
@@ -236,6 +251,8 @@ describe('background analysis and signed durable events',()=>{
     const source={id:M,account_id:A,message_id:'<one>',evidence:'Please review the contract by Friday.'};
     const raw=JSON.stringify({items:[{message_id:M,kind:'action',title:'Review',summary:'Review contract',quote:'review the contract'},{message_id:N,kind:'action',title:'Leak',summary:'private',quote:'Private'},{message_id:M,kind:'topic',title:'Invented',summary:'fake',quote:'Cancel subscription'}]});
     expect(parseInboxItems(raw,[source])).toHaveLength(1);
+    expect(parseInboxItems('<think>private reasoning</think>\n```json\n'+raw+'\n```',[source])).toHaveLength(1);
+    expect(()=>parseInboxItems('<think>unfinished reasoning '+raw,[source])).toThrow(/invalid Inbox JSON/);
   });
   it('runs an opt-in account job, persists progress, and never alters mail',async()=>{
     state.complete.mockResolvedValue(JSON.stringify({items:[{message_id:M,kind:'action',title:'Review contract',summary:'Alex asks for a review.',quote:'Please review the contract by Friday.'}]}));

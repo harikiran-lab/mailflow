@@ -2146,8 +2146,9 @@
     "atAGlance": "한눈에 보기",
     "summaryHelp": "아래 제안의 짧은 요약입니다. 제목을 누르면 원본 이메일을 읽을 수 있습니다.",
     "retryQueued": "재시도 예약됨",
-    "retryHelp": "제공업체 오류로 분석이 일시 중지되었습니다. 저장된 결과는 계속 볼 수 있습니다. {{time}}에 재시도합니다.",
+    "retryHelp": "이 계정의 분석이 일시 중지되었습니다. 저장된 제안은 계속 볼 수 있습니다. {{time}}에 재시도합니다.",
     "maximizeAssistant": "Flow AI 최대화",
-    "restoreAssistant": "패널 크기 복원"
+    "restoreAssistant": "패널 크기 복원",
+    "errorDetails": "마지막 오류"
   }
 }

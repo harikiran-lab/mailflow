@@ -2165,8 +2165,9 @@
     "atAGlance": "W skrócie",
     "summaryHelp": "Krótkie podsumowanie poniższych sugestii. Otwórz nagłówek, aby przeczytać źródłową wiadomość.",
     "retryQueued": "Zaplanowano ponowienie",
-    "retryHelp": "Analiza została wstrzymana po błędzie dostawcy. Zapisane wyniki są nadal dostępne. Ponowienie o {{time}}.",
+    "retryHelp": "Analiza tego konta jest wstrzymana. Zapisane sugestie są nadal dostępne. Ponowienie o {{time}}.",
     "maximizeAssistant": "Maksymalizuj Flow AI",
-    "restoreAssistant": "Przywróć rozmiar panelu"
+    "restoreAssistant": "Przywróć rozmiar panelu",
+    "errorDetails": "Ostatni błąd"
   }
 }

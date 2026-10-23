@@ -42,5 +42,6 @@ test('shows scheduled retries as paused work and allows manual retry without a s
   await open({status:'pending',error:'Earlier failure',next_retry_at:'2026-10-22T18:00:00Z'});
   assert.match(document.querySelector('.flow-account-settings').textContent,/flow.retryQueued/);
   assert.ok(document.querySelector('.flow-retry'));assert.equal(document.querySelector('.flow-account-settings .flow-error'),null);
+  const details=document.querySelector('.flow-retry-details');assert.ok(details);assert.equal(details.querySelector('summary').textContent,'flow.errorDetails');assert.match(details.textContent,/Earlier failure/);
   assert.equal(document.querySelector('.flow-inbox-topbar button').disabled,false);
 });

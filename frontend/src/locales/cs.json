@@ -2165,8 +2165,9 @@
     "atAGlance": "Rychlý přehled",
     "summaryHelp": "Stručné shrnutí níže uvedených návrhů. Kliknutím na nadpis otevřete zdrojový e-mail.",
     "retryQueued": "Opakování naplánováno",
-    "retryHelp": "Analýza se pozastavila kvůli chybě poskytovatele. Uložené výsledky zůstávají dostupné. Další pokus v {{time}}.",
+    "retryHelp": "Analýza tohoto účtu je pozastavena. Uložené návrhy zůstávají dostupné. Další pokus v {{time}}.",
     "maximizeAssistant": "Maximalizovat Flow AI",
-    "restoreAssistant": "Obnovit velikost panelu"
+    "restoreAssistant": "Obnovit velikost panelu",
+    "errorDetails": "Poslední chyba"
   }
 }

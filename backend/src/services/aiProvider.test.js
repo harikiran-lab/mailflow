@@ -298,6 +298,53 @@ describe('API-key provider regression', () => {
     expect(fetchFn.mock.calls[0][1].headers).not.toHaveProperty('Authorization');
   });
 
+  it('requests constrained JSON without changing ordinary completions',async()=>{
+    const fetchFn=vi.fn(async()=>jsonResponse({choices:[{finish_reason:'stop',message:{content:'{"items":[]}'}}]}));
+    const {provider}=factory({initial:legacy,fetchFn});
+    const schema={type:'object',properties:{items:{type:'array'}}};
+    await provider.completeText([{role:'user',content:'JSON please'}],{jsonSchema:schema,maxTokens:16384,temperature:0.1});
+    expect(JSON.parse(fetchFn.mock.calls[0][1].body)).toMatchObject({max_tokens:16384,temperature:0.1,response_format:{type:'json_schema',json_schema:{name:'mailflow_inbox',strict:true,schema}}});
+    await provider.completeText([{role:'user',content:'Normal answer'}]);
+    expect(JSON.parse(fetchFn.mock.calls[1][1].body)).not.toHaveProperty('response_format');
+    expect(JSON.parse(fetchFn.mock.calls[1][1].body)).not.toHaveProperty('temperature');
+  });
+
+  it('negotiates unsupported JSON formats once and remembers provider capability',async()=>{
+    const fetchFn=vi.fn(async(_url,init)=>{
+      const format=JSON.parse(init.body).response_format;
+      return format?jsonResponse({error:{message:'Unsupported response_format '+format.type}},400):jsonResponse({choices:[{message:{content:'{"items":[]}'}}]});
+    });
+    const {provider}=factory({initial:legacy,fetchFn});
+    const options={jsonSchema:{type:'object'},maxTokens:16384};
+    await expect(provider.completeText([{role:'user',content:'JSON'}],options)).resolves.toBe('{"items":[]}');
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+    expect(fetchFn.mock.calls.map(c=>JSON.parse(c[1].body).response_format?.type)).toEqual(['json_schema','json_object',undefined]);
+    await provider.completeText([{role:'user',content:'JSON'}],options);expect(fetchFn).toHaveBeenCalledTimes(4);
+    expect(JSON.parse(fetchFn.mock.calls[3][1].body)).not.toHaveProperty('response_format');
+  });
+
+  it('does not downgrade structured requests for authentication or unrelated failures',async()=>{
+    const fetchFn=vi.fn(async()=>jsonResponse({error:{message:'Invalid API key'}},401));
+    const {provider}=factory({initial:legacy,fetchFn});
+    await expect(provider.completeText([{role:'user',content:'JSON'}],{jsonSchema:{type:'object'}})).rejects.toThrow(/401/);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('distinguishes output exhaustion for empty, partial, and apparently valid final content',async()=>{
+    for(const content of ['',null,'{"items":[','{"items":[]}']){
+      const fetchFn=vi.fn(async()=>jsonResponse({usage:{completion_tokens:5000},choices:[{finish_reason:'length',message:{content,reasoning_content:'private reasoning'}}]}));
+      const {provider}=factory({initial:legacy,fetchFn});
+      const error=await provider.completeText([{role:'user',content:'JSON'}],{maxTokens:5000}).catch(e=>e);
+      expect(error).toMatchObject({status:502,expose:true,code:'AI_OUTPUT_LIMIT'});expect(error.message).toContain('5000');expect(error.message).not.toContain('private reasoning');
+    }
+  });
+
+  it('never treats reasoning-only output as an empty successful analysis',async()=>{
+    const fetchFn=vi.fn(async()=>jsonResponse({choices:[{finish_reason:'stop',message:{content:' ',reasoning_content:'{"items":[]}'}}]}));
+    const {provider}=factory({initial:legacy,fetchFn});
+    await expect(provider.completeText([{role:'user',content:'JSON'}])).rejects.toMatchObject({code:'AI_EMPTY_ANSWER'});
+  });
+
   it('surfaces the finish reason when a real completion returns null content', async () => {
     // Reasoning model: all output went to reasoning, content is null (#401).
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse({

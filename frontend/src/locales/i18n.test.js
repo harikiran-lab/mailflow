@@ -730,7 +730,7 @@ function looksLikeUserText(str) {
 }
 
 function scanHardcodedStrings() {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const violations = [];
 
   function walk(d) {
@@ -805,7 +805,7 @@ function baseKey(key) {
 }
 
 function loadSourceText() {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const out = [];
   function walk(d) {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
@@ -823,7 +823,7 @@ function loadSourceText() {
 }
 
 function loadLiteralSourceTranslationKeys(prefix) {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const keys = new Set();
   const literalTranslationCall = /(?<![\w$.])t\(\s*['"]([^'"]+)['"]/g;
 
