@@ -305,12 +305,11 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         borderRadius: 6, marginBottom: 8, background: 'var(--bg-primary)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center' }}>
       <button
         onClick={() => onToggle(message.id)}
         aria-expanded={expanded}
         style={{
-          width: '100%', flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 8, textAlign: 'left',
+          width: '100%', display: 'flex', alignItems: 'baseline', gap: 8, textAlign: 'left',
           background: 'none', border: 'none', padding: '10px 12px', cursor: 'pointer',
           color: 'var(--text-primary)', font: 'inherit',
         }}
@@ -324,10 +323,6 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
         <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 'auto', flex: '0 0 auto' }}>{when}</span>
       </button>
 
-      {expanded && <div style={{ paddingRight: 12 }}>
-        <PluginSlot name="message-toolbar-actions" ctx={{ message }} />
-      </div>}
-      </div>
       {expanded && (
         <div style={{ padding: '0 12px 12px' }}>
           {/* The reading pane's toolbar, from the same buttons in the same order (#650), less what the
@@ -348,6 +343,7 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
               <ForwardIcon />
             </ActionBtn>
             <div style={{ flex: 1 }} />
+            <PluginSlot name="message-toolbar-actions" ctx={{ message }} />
             <MessageTools key={`tools-${message.id}`} isMobile={isMobile} items={toolItems} ai={aiTools} />
             <ActionBtn onClick={handleStar} label={t('message.star')} pressed={Boolean(message.is_starred)} touch={isMobile}>
               <StarIcon filled={message.is_starred} />
@@ -456,4 +452,3 @@ export default function ConversationMessageCard({ message, expanded, onToggle, o
     </div>
   );
 }
-
