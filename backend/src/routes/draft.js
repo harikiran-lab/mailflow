@@ -1,3 +1,4 @@
+import { bindMailCapability } from '../services/mailCapabilities.js';
 import nodemailer from 'nodemailer';
 import { randomBytes } from 'crypto';
 import { Router } from 'express';
@@ -329,7 +330,7 @@ async function buildRawDraft({ accountId, aliasId, to, cc, bcc, subject, body, b
   };
 }
 
-router.post('/draft', async (req, res) => {
+async function handleCapabilityDraft(req, res) {
   const { accountId, aliasId, to, cc, bcc, subject, body, bodyIsHtml = false, quotedBody, quotedBodyHtml, editedSignature, existingUid, existingFolder, existingAccountId, inReplyTo, references } = req.body;
   if (!accountId) return res.status(400).json({ error: 'accountId required' });
 
@@ -421,7 +422,9 @@ router.post('/draft', async (req, res) => {
     console.error('Save draft failed:', err.message);
     res.status(err.status || 500).json({ error: err.message || 'Failed to save draft' });
   }
-});
+}
+router.post('/draft', handleCapabilityDraft);
+bindMailCapability('draft', handleCapabilityDraft);
 
 router.delete('/draft/:uid', async (req, res) => {
   const uid = parseInt(req.params.uid, 10);

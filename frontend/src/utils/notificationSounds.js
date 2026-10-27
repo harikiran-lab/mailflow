@@ -203,3 +203,8 @@ export function playNotificationSound(id, customDataUrl) {
     SYNTHS[id]?.(ac);
   } catch { /* intentional */ }
 }
+
+// Prime audio from an explicit interaction before a later background completion.
+export function unlockNotificationSound() {
+  try { getAudioCtx(); } catch { /* Audio is optional on unsupported browsers. */ }
+}

@@ -16,6 +16,7 @@
 // pre-bound capabilities (apply a label, summarize a message, …), never as the raw manager.
 
 export { captureStatus, connectCapture, disconnectCapture } from '../services/captureDestination.js';
+export { flowStatus, setFlowPreferences, setFlowAnalysis, setFlowAccount, requestFlowRefresh, flowInbox, dismissFlowItem, runFlowChat, flowConversations, deleteFlowConversation, flowIngest, flowEventsActive, prepareFlowAction, confirmFlowAction, getFlowAction, resolveFlowSource } from '../services/flowAI.js';
 export { prepareEmailCapture, saveEmailCapture, emailCaptureStatus } from '../services/emailCapture.js';
 import { getMailEngine } from './mailEngine.js';
 import * as labelsWrite from '../services/labels.js';
@@ -107,3 +108,5 @@ export {
   getLabelMetadata,
   setMessageAnnotation,
 } from '../services/mailAccess.js';
+
+export { startFlowRun,getFlowRun,listFlowRuns,stopFlowRun } from '../services/flowChatRuns.js';

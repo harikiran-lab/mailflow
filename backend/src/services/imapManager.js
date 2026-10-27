@@ -4857,7 +4857,9 @@ export class ImapManager {
         // THIS account (GTD's handler is active only when gtd_enabled), so a mailbox with no such
         // plugin collects nothing and issues no extra queries — identical to the pre-plugin gate.
         const wantsInboxIngest = folder === 'INBOX' && await pluginRegistry.hasActiveAsync('inboxIngest', { account });
+        const wantsMailEvents = await pluginRegistry.hasActiveAsync('mailIngested', { account });
         const newInboxIds = [];
+        const newMailIds = [];
         const ingestDeletedIds = new Set();
 
         // Insert/update a single fetched message and track it as new if appropriate.
@@ -5001,9 +5003,10 @@ export class ImapManager {
               // is not a gate here — the plugin decides). The unread-only push below still drives
               // notifications. Gated on wantsInboxIngest so a mailbox with no ingest plugin builds
               // nothing extra.
-              if (wantsInboxIngest) {
+              if (wantsInboxIngest || wantsMailEvents && folder === 'INBOX') {
                 newInboxIds.push(result.rows[0].id);
               }
+              if (wantsMailEvents) newMailIds.push(result.rows[0].id);
               if (!parsed.isRead) {
                 newMessages.push({ ...parsed, id: result.rows[0].id, accountId: account.id, folder });
               }
@@ -5353,6 +5356,9 @@ export class ImapManager {
           await pluginRegistry.runHook('inboxIngest', {
             mgr: this.pluginFacade, account, newInboxIds, deletedIds: ingestDeletedIds,
           });
+        }
+        if (wantsMailEvents && newMailIds.length > 0) {
+          await pluginRegistry.runHook('mailIngested', { account, folder, newInboxIds, newMailIds });
         }
         // Reconcile the cached unread badge from actual rows now that this pass's inserts, flag
         // updates, and any INBOX rule/block-list moves have all landed. The provisional
@@ -6321,6 +6327,8 @@ export class ImapManager {
       safeDate(date), sanitizeStr(snippet || ''), threadId,
       Array.isArray(bcc) && bcc.length ? JSON.stringify(bcc) : null,
     ]);
+    // Queue contextual work only; plugin failures cannot fail a sent-message save.
+    await pluginRegistry.runHook('mailIngested', { account, folder, sentChanged: { uid } });
   }
 
   // Persist a local Drafts row immediately after appending a draft to IMAP, so the

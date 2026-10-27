@@ -6,6 +6,13 @@ const { canRunSelectedAction, canRunGlobalAction, canHandlePaneShortcut } = appl
 
 const selected = { selectedMessageId: 'm1', messages: [{ id: 'm1', account_id: 'a1' }] };
 
+test('plugin views prevent actions against hidden mail selections', () => {
+  const state = { ...selected, pluginView: 'flow-inbox' };
+  for (const action of ['archive', 'delete', 'toggleRead', 'reply', 'gtdTodo', 'selectAll']) assert.equal(canRunSelectedAction(action, state), false, action);
+  assert.equal(canHandlePaneShortcut(null, state), false);
+  assert.equal(canRunSelectedAction('compose', state), true);
+});
+
 test('selected-row actions leave browser behavior alone without a selection', () => {
   for (const action of ['markUnread', 'forward', 'replyAllFromSelection', 'unsubscribe', 'loadRemoteImages', 'openLabelPicker', 'reply', 'replyAll', 'toggleStar', 'printMessage', 'toggleRead', 'selectMessage']) {
     assert.equal(canRunSelectedAction(action, { ...selected, selectedMessageId: null }), false, action);

@@ -35,6 +35,7 @@ import { getEffectiveShortcuts, getGroupedActions, getShortcutConflicts, shortcu
 import { isValidForwardAddress } from '../utils/ruleActions.js';
 import { folderParentLabel } from '../utils/folderDisplay.js';
 import AdminUserEditor from './AdminUserEditor.jsx';
+import DeveloperSettings from './DeveloperSettings.jsx';
 import AccountErrorCallout from './AccountErrorCallout.jsx';
 import SignInAgainDialog from './SignInAgainDialog.jsx';
 import AddAccountChooser from './AddAccountChooser.jsx';
@@ -7007,7 +7008,6 @@ const TABS = [
   },
   {
     id: 'ai', labelKey: 'admin.tabs.ai',
-    adminOnly: true,
     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg>,
   },
   {
@@ -8512,6 +8512,7 @@ function makeSearchIndex(t) {
     // Integrations
     { label: t('admin.integrations.todoist.title'), keywords: ['todoist', 'tasks', 'to-do', 'carddav', 'contacts sync'], tab: 'integrations', breadcrumb: tabLabel('integrations') },
     { label: t('admin.ai.title'), keywords: ['ai', 'artificial intelligence', 'chatgpt', 'ollama', 'llm', 'language model', 'summarize', 'draft', 'compose assistant', 'openai', 'local ai', 'inference', 'gpt'], tab: 'ai', adminOnly: true, breadcrumb: tabLabel('ai') },
+    { label: t('flow.developerTitle'), keywords: ['flow ai', 'ai inbox', 'api', 'mcp', 'tokens', 'webhooks', 'embeddings', 'developer'], tab: 'ai', breadcrumb: tabLabel('ai') },
     { label: t('admin.plugins.title'), keywords: ['plugin', 'plugins', 'extension', 'extensions', 'add-on', 'addon', 'gtd', 'activate', 'enable feature', 'modules'], tab: 'plugins', breadcrumb: tabLabel('plugins') },
     { label: t('admin.categories.title'), keywords: ['categories', 'categorize', 'newsletter', 'promotion', 'social', 'automated', 'inbox tabs', 'sort emails', 'classify'], tab: 'categories', breadcrumb: tabLabel('categories') },
     { label: t('admin.categories.gtdReveal'), keywords: ['gtd', 'todo', 'getting things done', 'watch', 'delegated', 'someday', 'reference', 'next action', 'waiting', 'inbox zero', 'pet'], tab: 'categories', subtab: 'gtd', breadcrumb: `${tabLabel('categories')} › ${t('admin.categories.gtdReveal')}` },
@@ -8663,7 +8664,7 @@ export default function AdminPanel() {
       {adminTab === 'behavior' && <BehaviorTab />}
       {adminTab === 'notifications' && <NotificationsTab />}
       {adminTab === 'shortcuts' && !isMobile && <ShortcutsTab />}
-      {adminTab === 'ai' && <AISection />}
+      {adminTab === 'ai' && <>{user?.isAdmin && <AISection />}<DeveloperSettings /></>}
       {adminTab === 'ai-actions' && <AiActionsTab />}
       {adminTab === 'plugins' && <PluginsSection onNavigate={navigateTo} />}
       {adminTab === 'about' && <AboutTab />}

@@ -157,7 +157,7 @@ export const useStore = create((set, get) => ({
         // revision need not move.
         replyDrafts: {},
         composing: false, composeData: null, prepareComposeSwitch: null, messageWindows: [],
-        enabledPlugins: [], autoLockMinutes: 0, blockRemoteImages: true,
+        enabledPlugins: [], pluginView: null, autoLockMinutes: 0, blockRemoteImages: true,
         imageWhitelist: { addresses: [], domains: [] }, shortcuts: {}, aiActions: null,
         hiddenFolders: {}, categorizationEnabled: false, gtdPetSlug: null,
         autoOpenReplyDrafts: false, afterRemove: 'next', darkEmailBodies: true,
@@ -293,6 +293,7 @@ export const useStore = create((set, get) => ({
         expandedThreadId: null,
         threadMessages: {},
         showContacts: false,
+        pluginView: null,
         ...(navChanged && wasScopedSearch ? { searchQuery: '' } : {}),
       };
     });
@@ -385,7 +386,7 @@ export const useStore = create((set, get) => ({
   // Selected message
   selectedMessageId: null,
   lastViewedMessageId: null,
-  setSelectedMessage: (id) => set(id ? { selectedMessageId: id, lastViewedMessageId: id } : { selectedMessageId: null }),
+  setSelectedMessage: (id) => set(id ? { selectedMessageId: id, lastViewedMessageId: id, pluginView: null, showContacts: false } : { selectedMessageId: null }),
 
   // Server snapshots are retained separately from a bounded optimistic window.
   serverUnreadCounts: { total: 0, byAccount: {}, snapshots: {} },
@@ -670,7 +671,9 @@ export const useStore = create((set, get) => ({
 
   // Contacts view
   showContacts: false,
-  setShowContacts: (v) => set({ showContacts: v }),
+  setShowContacts: (v) => set({ showContacts: v, pluginView: null }),
+  pluginView: null,
+  setPluginView: (view) => set({ pluginView: view, showContacts: false }),
   rulesPreFill: null, // { fromEmail, fromName, subject } — transient, set by context menu
   setRulesPreFill: (v) => set({ rulesPreFill: v }),
 

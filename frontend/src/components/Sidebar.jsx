@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import AccountMark from './AccountMark.jsx';
+import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/index.js';
 import { unreadBadge } from '../utils/unreadBadge.js';
@@ -279,7 +280,7 @@ export default function Sidebar() {
     accountsReady,
     sidebarWidth,
     isSidebarResizing,
-    showContacts, setShowContacts,
+    showContacts, setShowContacts, pluginView,
   } = useStore();
 
   const isMobile = useMobile();
@@ -936,13 +937,14 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav data-mailbox-sidebar="" style={{ flex: 1, overflow: 'hidden auto', padding: '4px 8px' }}>
+        <PluginSlot name="sidebar-navigation" ctx={{ collapsed: sidebarCollapsed }} />
         {/* Unified Inbox — only shown with 2+ enabled accounts */}
         {accounts.filter(a => a.enabled).length >= 2 && (
           <NavItem
             mailboxRow
             icon={ICONS.inbox}
             label={t('sidebar.allInboxes')}
-            active={isUnified && selectedFolder !== SNOOZED_FOLDER && !isScheduledView && !showContacts}
+            active={isUnified && selectedFolder !== SNOOZED_FOLDER && !isScheduledView && !showContacts && !pluginView}
             collapsed={sidebarCollapsed}
             badge={unreadCounts.total}
             badgeStale={!unreadCounts.complete}
@@ -958,7 +960,7 @@ export default function Sidebar() {
             mailboxRow
             icon={ICONS.snoozed}
             label={t('sidebar.snoozed')}
-            active={isUnified && selectedFolder === SNOOZED_FOLDER && !showContacts}
+            active={isUnified && selectedFolder === SNOOZED_FOLDER && !showContacts && !pluginView}
             collapsed={sidebarCollapsed}
             onClick={() => setSelectedAccount(null, SNOOZED_FOLDER)}
           />
@@ -972,7 +974,7 @@ export default function Sidebar() {
             mailboxRow
             icon={<SendLaterIcon size={16} />}
             label={t('sidebar.scheduled')}
-            active={isScheduledView && !showContacts}
+            active={isScheduledView && !showContacts && !pluginView}
             collapsed={sidebarCollapsed}
             badge={scheduledCount}
             badgeTitle={t('sidebar.scheduledPending', { n: scheduledCount })}
@@ -996,7 +998,7 @@ export default function Sidebar() {
                 if (!account) return null;
                 const accountFolders = folders[accountId] || [];
                 const folderObj = accountFolders.find(f => f.path === path);
-                const isActive = selectedAccountId === accountId && selectedFolder === path;
+                const isActive = !pluginView && !showContacts && selectedAccountId === accountId && selectedFolder === path;
                 const favBadge = unreadBadge({ count: folderObj?.unread_count, known: folderObj?.counts_known !== false,
                   stale: folderObj?.counts_stale, observedAt: folderObj?.server_counts_at });
                 const isRenamingThis = renamingFav?.accountId === accountId && renamingFav?.path === path;
@@ -1198,7 +1200,7 @@ export default function Sidebar() {
             known: Number.isFinite(unreadCounts.byAccount[account.id]) && countSnapshot?.known !== false,
             stale: countSnapshot?.stale, observedAt: countSnapshot?.observedAt, max: 999 });
           const expanded = expandedAccounts[account.id];
-          const isSelected = selectedAccountId === account.id;
+          const isSelected = !pluginView && !showContacts && selectedAccountId === account.id;
           const accountFolders = folders[account.id] || [];
           const accountHiddenPaths = hiddenFolders[account.id] || [];
           const showingHidden = showHiddenFor.has(account.id);
@@ -1426,7 +1428,7 @@ export default function Sidebar() {
                   if (isHidden && !showingHidden) return null;
 
                   const isRenaming = renamingFolder?.accountId === account.id && renamingFolder?.path === folder.path;
-                  const isFolderSelected = selectedAccountId === account.id && selectedFolder === folder.path;
+                  const isFolderSelected = !pluginView && !showContacts && selectedAccountId === account.id && selectedFolder === folder.path;
                   const visibleChildren = showingHidden ? children : children.filter(c => !accountHiddenPaths.includes(c.path));
                   const hasChildren = visibleChildren.length > 0;
                   const collapseKey = `${account.id}:${folder.path}`;
@@ -1883,7 +1885,7 @@ export default function Sidebar() {
         <>
           <div style={{ padding: '4px 8px', display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
             <button
-              onClick={() => { setShowContacts(!showContacts); if (isMobile) setMobileSidebarOpen(false); }}
+              onClick={() => { setShowContacts(!showContacts && !pluginView); if (isMobile) setMobileSidebarOpen(false); }}
               title={t('contacts.title')}
               style={{
                 width: 28, height: 28, borderRadius: 7,
@@ -1893,8 +1895,8 @@ export default function Sidebar() {
                 color: showContacts ? 'var(--accent)' : 'var(--text-tertiary)',
                 transition: 'background 0.1s, color 0.1s',
               }}
-              onMouseEnter={e => { if (!showContacts) { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
-              onMouseLeave={e => { if (!showContacts) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
+              onMouseEnter={e => { if (!showContacts && !pluginView) { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
+              onMouseLeave={e => { if (!showContacts && !pluginView) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; } }}
             >
               {ICONS.contacts}
             </button>

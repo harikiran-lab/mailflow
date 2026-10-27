@@ -1,3 +1,5 @@
+import { bindMailCapability } from '../services/mailCapabilities.js';
+import { queueEvent } from '../services/developerAccess.js';
 import { STATUS_STALE_MS } from '../services/folderStatus.js';
 import { Router } from 'express';
 import { createRequire } from 'module';
@@ -129,6 +131,8 @@ function snippetIsGarbled(s) {
 function notifyMailMutation(rows, userId) {
   for (const accountId of new Set(rows.map(m => m.account_id).filter(Boolean))) {
     imapManager.scheduleCountRefresh?.(accountId);
+    queueEvent(userId, accountId, 'mail.changed', { message_ids: rows.filter(m => m.account_id === accountId).map(m => m.id).slice(0, 100) })
+      .catch(err => console.warn('Mail webhook enqueue failed:', err.message));
   }
   const byAccount = new Map();
   for (const m of rows) {
@@ -1013,7 +1017,7 @@ router.get('/messages/:id/raw.eml', async (req, res) => {
 const WITH_SIBLING_COUNT = `m.*, a.user_id, ${SIBLING_COUNT}`;
 
 // Mark read/unread
-router.patch('/messages/:id/read', async (req, res) => {
+async function handleCapabilityRead(req, res) {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });
   const { read } = req.body;
@@ -1072,10 +1076,12 @@ router.patch('/messages/:id/read', async (req, res) => {
   notifyMailMutation([message], req.session.userId);
 
   res.json({ ok: true, is_read: read });
-});
+}
+router.patch('/messages/:id/read', handleCapabilityRead);
+bindMailCapability('read', handleCapabilityRead);
 
 // Star/unstar
-router.patch('/messages/:id/star', async (req, res) => {
+async function handleCapabilityStar(req, res) {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });
   const { starred } = req.body;
@@ -1115,7 +1121,9 @@ router.patch('/messages/:id/star', async (req, res) => {
   }
 
   res.json({ ok: true, is_starred: starred });
-});
+}
+router.patch('/messages/:id/star', handleCapabilityStar);
+bindMailCapability('star', handleCapabilityStar);
 
 // Manual sync (INBOX)
 router.post('/sync', async (req, res) => {
@@ -1834,7 +1842,7 @@ router.get('/cleanup-preview', async (req, res) => {
 });
 
 // Bulk move to folder
-router.post('/messages/bulk-move', async (req, res) => {
+async function handleCapabilityMove(req, res) {
   const { ids, folder } = req.body;
   if (!Array.isArray(ids) || ids.length === 0 || !folder) {
     return res.status(400).json({ error: 'ids array and folder required' });
@@ -1966,7 +1974,9 @@ router.post('/messages/bulk-move', async (req, res) => {
   } finally {
     for (const g of moveGuards) imapManager._unguardMoveUid(g.accountId, g.folder, g.uid);
   }
-});
+}
+router.post('/messages/bulk-move', handleCapabilityMove);
+bindMailCapability('move', handleCapabilityMove);
 
 // Copy into a selectable account-owned folder.
 router.post('/messages/:id/copy', async (req, res) => {
@@ -2005,7 +2015,7 @@ router.post('/messages/:id/copy', async (req, res) => {
 });
 
 // Bulk archive — moves messages to the archive folder for each account
-router.post('/messages/bulk-archive', async (req, res) => {
+async function handleCapabilityArchive(req, res) {
   const { ids } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: 'ids array required' });
@@ -2162,7 +2172,9 @@ router.post('/messages/bulk-archive', async (req, res) => {
   } finally {
     for (const g of moveGuards) imapManager._unguardMoveUid(g.accountId, g.folder, g.uid);
   }
-});
+}
+router.post('/messages/bulk-archive', handleCapabilityArchive);
+bindMailCapability('archive', handleCapabilityArchive);
 
 // A snooze record counts only while its message still sits in the folder it was snoozed into.
 // Moving a snoozed message out by hand leaves the record behind until the wake-up sweep removes
@@ -2296,7 +2308,7 @@ async function snoozedTogether(msg, userId) {
 const ownedMessage = (id, userId) => findOwnedMessage(userId, id, { columns: 'm.*, a.user_id' });
 
 // Snooze a message: move it to a Snoozed IMAP folder and record when to restore it
-router.post('/messages/:id/snooze', async (req, res) => {
+async function handleCapabilitySnooze(req, res) {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });
 
@@ -2323,6 +2335,9 @@ router.post('/messages/:id/snooze', async (req, res) => {
   // gatherSnoozeConversation for why Gmail requires this and why it's bounded
   // to the header reply chain rather than thread_id).
   const convo = await gatherSnoozeConversation(msg);
+  if (req.body.expectedConversationIds && JSON.stringify(convo.map(m => m.id).sort()) !== JSON.stringify(req.body.expectedConversationIds)) {
+    return res.status(409).json({ error: 'The conversation changed after the preview. Prepare a new preview.' });
+  }
 
   // Drop the leftover records of earlier snoozes of these messages, so the new snooze is the
   // only one and an old wake time cannot wake the message early.
@@ -2388,7 +2403,9 @@ router.post('/messages/:id/snooze', async (req, res) => {
   notifyMailMutation(convo, req.session.userId);
 
   res.json({ ok: true });
-});
+}
+router.post('/messages/:id/snooze', handleCapabilitySnooze);
+bindMailCapability('snooze', handleCapabilitySnooze);
 
 // The Snoozed view (#269): change when a snoozed conversation comes back, as snoozing it did for
 // the whole reply chain.
@@ -2782,7 +2799,7 @@ router.get('/category-counts', async (req, res) => {
 
 // PATCH /api/mail/messages/:id/category
 // Manually override the computed category for a single message.
-router.patch('/messages/:id/category', async (req, res) => {
+async function handleCapabilityCategory(req, res) {
   const { id } = req.params;
   if (!UUID_RE.test(id)) return res.status(400).json({ error: 'Invalid message id' });
 
@@ -2802,12 +2819,16 @@ router.patch('/messages/:id/category', async (req, res) => {
      WHERE messages.id = $2
        AND messages.account_id = a.id
        AND a.user_id = $3
-     RETURNING messages.id`,
+     RETURNING messages.id, messages.account_id`,
     [category, id, req.session.userId]
   );
   if (!result.rows.length) return res.status(404).json({ error: 'Message not found' });
+  queueEvent(req.session.userId, result.rows[0].account_id, 'mail.changed', { message_ids: [id], action: 'category' })
+    .catch(err => console.warn('Mail webhook enqueue failed:', err.message));
   res.json({ ok: true, category });
-});
+}
+router.patch('/messages/:id/category', handleCapabilityCategory);
+bindMailCapability('category', handleCapabilityCategory);
 
 // POST /api/mail/messages/:id/unsubscribe
 // Processes a one-click unsubscribe (RFC 8058) or returns parsed
@@ -2902,3 +2923,8 @@ router.post('/messages/:id/ham', async (req, res) => {
 });
 
 export default router;
+bindMailCapability('snooze-preview', async (req, res) => {
+  const message = await ownedMessage(req.params.id, req.session.userId);
+  if (!message) return res.status(404).json({ error: 'Email not found' });
+  res.json({ ids: (await gatherSnoozeConversation(message)).map(m => m.id) });
+});

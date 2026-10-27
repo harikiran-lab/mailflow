@@ -85,7 +85,7 @@ async function mount({ collapsed = [], hidden = [], state = {} }) {
     expandedAccounts: { 'acct-1': true },
     collapsedFolders: collapsed.map(p => `acct-1:${p}`),
     hiddenFolders: hidden.length ? { 'acct-1': hidden } : {},
-    scheduledCount: 0, scheduledAttention: 0,
+    scheduledCount: 0, scheduledAttention: 0, pluginView: null, showContacts: false,
     ...state,
   });
   await React.act(async () => {
@@ -120,6 +120,34 @@ describe('Sidebar — collapsed folders show their subfolders\' unread mail (#53
     await mount({ collapsed: ['Banking'], hidden: ['Banking/Muted'] });
     assert.equal(badgeOf('Banking'), '5');
   });
+});
+
+test('AI Inbox clears regular mailbox highlights while preserving the remembered mailbox', async () => {
+  await mount({ collapsed: [] });
+  await React.act(async () => useStore.setState({ pluginView: null, showContacts: false }));
+  const activeRows = () => [...document.querySelectorAll('[data-mailbox-row]')].filter(row => row.style.background === 'var(--bg-hover)');
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.getState().setPluginView('flow-inbox'));
+  assert.equal(activeRows().length, 0);
+  assert.equal(useStore.getState().selectedAccountId, 'acct-1');
+  await React.act(async () => useStore.getState().setSelectedAccount('acct-1', 'INBOX'));
+  assert.equal(useStore.getState().pluginView, null);
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.setState({ expandedAccounts: { 'acct-1': false } }));
+  assert.ok(activeRows().length > 0);
+  await React.act(async () => useStore.getState().setPluginView('flow-inbox'));
+  assert.equal(activeRows().length, 0);
+});
+
+test('AI Inbox clears the Scheduled highlight and returning restores it', async () => {
+  await mount({ state: { selectedAccountId: null, selectedFolder: '__scheduled__', scheduledCount: 1 } });
+  const activeRows = () => [...document.querySelectorAll('[data-mailbox-row]')].filter(row => row.style.background === 'var(--bg-hover)');
+  assert.equal(activeRows().length, 1);
+  await React.act(async () => useStore.getState().setPluginView('flow-inbox'));
+  assert.equal(activeRows().length, 0);
+  await React.act(async () => useStore.getState().setSelectedAccount(null, '__scheduled__'));
+  assert.equal(useStore.getState().pluginView, null);
+  assert.equal(activeRows().length, 1);
 });
 
 // The Scheduled entry (#543, design 5.2): shown while anything is scheduled or needs attention, and

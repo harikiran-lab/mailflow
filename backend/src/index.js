@@ -50,6 +50,8 @@ import { closeWebSocketClients, createWebSocketServer, setupWebSocket } from './
 import { ImapManager } from './services/imapManager.js';
 import { getUpdateStatus } from './services/updateCheck.js';
 import { recordHttp } from './services/performanceMetrics.js';
+import { developerRoutes, externalRoutes, mcpRoutes } from './routes/developer.js';
+import { startIntegrations } from './services/flowAI.js';
 import { shutDown } from './services/sendShutdown.js';
 import { startScheduledSender } from './services/scheduledSend.js';
 
@@ -139,6 +141,10 @@ app.use((req, res, next) => {
 mountBodyParsers(app, sessionMiddleware);
 app.use(sessionMiddleware);
 
+// These endpoints accept bearer credentials exclusively and have their own origin/auth gates.
+app.use('/api/v1', externalRoutes);
+app.use('/api/mcp', mcpRoutes);
+
 // CSRF defense-in-depth for the cookie-authenticated /api surface. A mutating
 // request must carry a custom header that a cross-site <form> cannot set and a
 // cross-origin fetch cannot send without a CORS preflight — which the CORS policy
@@ -174,6 +180,7 @@ setMailEngine(imapManager);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/developer', developerRoutes);
 app.use('/api/auth/oidc', oidcApiRouter);
 app.use('/auth/oidc', oidcBrowserRouter);
 app.use('/oauth', oauthRoutes);
@@ -240,6 +247,7 @@ setupWebSocket(wss, sessionMiddleware, imapManager);
 
 // Run pending schema migrations then start
 await runMigrations();
+startIntegrations();
 
 // One-time backfill: populate photo_data from existing vcard column for contacts
 // that were synced before CardDAV PUT started persisting photo_data.

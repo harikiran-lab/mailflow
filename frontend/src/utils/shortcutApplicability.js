@@ -19,6 +19,7 @@ export function canRunGlobalAction(action, { rightSidebarApplicable }) {
 }
 
 export function canRunSelectedAction(action, state) {
+  if (state?.pluginView && (SELECTED_ACTIONS.has(action) || ['archive', 'delete', 'nextMessage', 'prevMessage', 'openMessage', 'selectAll'].includes(action) || action.startsWith('gtd'))) return false;
   if (canDispatchHoveredGtdShortcut(action, state)) return true;
   if (['gtdTodo', 'gtdWatch', 'gtdDelegated', 'gtdReference', 'gtdSomeday', 'gtdDone'].includes(action)) {
     return Boolean(resolveGtdHotkeyTarget(state));
@@ -29,6 +30,7 @@ export function canRunSelectedAction(action, state) {
 }
 
 export function canHandlePaneShortcut(windowMessageId, state) {
+  if (windowMessageId == null && state?.pluginView) return false;
   if (windowMessageId == null) return Boolean(state?.selectedMessageId);
   return topOpenMessageWindow(state)?.messageId === windowMessageId;
 }

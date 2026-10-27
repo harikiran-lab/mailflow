@@ -1,3 +1,4 @@
+import { queueEvent } from './developerAccess.js';
 import { query } from './db.js';
 import { findOwnedAccount } from './ownership.js';
 import { imapManager } from '../index.js';
@@ -11,6 +12,7 @@ import { resolveAllDraftsPaths } from '../utils/mailUtils.js';
 // markers. The composer refreshes its own tab; this reaches the user's other tabs and devices.
 // Best-effort: the draft is already saved or deleted, and a failed notice only delays a marker.
 export function noteDraftsChanged(userId, accountId) {
+  queueEvent(userId, accountId, 'draft.changed', {}).catch(err => console.warn('Draft webhook enqueue failed:', err.message));
   try {
     imapManager.broadcast({ type: 'drafts_changed', accountId }, userId);
   } catch (err) {

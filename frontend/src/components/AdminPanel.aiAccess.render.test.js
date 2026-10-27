@@ -65,8 +65,8 @@ const click = (el) => React.act(async () => { el.dispatchEvent(new window.MouseE
 let root;
 afterEach(() => React.act(async () => root.unmount()));
 
-async function open(tab) {
-  useStore.setState({ user: { id: ADMIN.id, isAdmin: true }, accounts: [], adminTab: tab });
+async function open(tab, { isAdmin = true } = {}) {
+  useStore.setState({ user: { id: ADMIN.id, isAdmin }, accounts: [], adminTab: tab });
   root = createRoot(document.getElementById('root'));
   await React.act(async () => { root.render(React.createElement(AdminPanel)); });
   await React.act(async () => {});
@@ -122,6 +122,19 @@ describe('Users: per-user AI switch', () => {
 });
 
 describe('AI settings: Allow AI for new users', () => {
+  test('developer access is under AI Assistant for regular users without loading admin provider controls', async () => {
+    let providerCalls = 0;
+    const previous = api.ai.getConfig;
+    api.ai.getConfig = async () => { providerCalls++; return { config: null }; };
+    try {
+      await open('ai', { isAdmin: false });
+      assert.match(document.body.textContent, /flow\.developerTitle/);
+      assert.match(document.body.textContent, /flow\.apiTokens/);
+      assert.doesNotMatch(document.body.textContent, /flow\.adminControls/);
+      assert.equal(providerCalls, 0);
+      assert.ok([...document.querySelectorAll('button')].some(b => b.textContent.includes('admin.tabs.ai')));
+    } finally { api.ai.getConfig = previous; }
+  });
   const saved = [];
   const CONFIG = {
     enabled: true, provider: 'api-key',

@@ -1,3 +1,4 @@
+import { bindMailCapability } from '../services/mailCapabilities.js';
 import { Router } from 'express';
 import { query } from '../services/db.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -124,7 +125,7 @@ export function freeTextTermCondition(likeIdx, ftsIdx) {
       )`;
 }
 
-router.get('/', searchLimiter, async (req, res) => {
+async function handleCapabilitySearch(req, res) {
   const { q, accountId, limit = 50, offset = 0 } = req.query;
   const trimmed = (q || '').trim();
   if (!trimmed) return res.json({ messages: [] });
@@ -259,7 +260,9 @@ router.get('/', searchLimiter, async (req, res) => {
     console.error('Search error:', err);
     res.status(500).json({ error: 'Search failed' });
   }
-});
+}
+router.get('/', searchLimiter, handleCapabilitySearch);
+bindMailCapability('search', handleCapabilitySearch);
 
 // Contact autocomplete — returns up to 10 addresses matching the query.
 // Priority: addresses the user has sent to (contacts table, ranked by send_count)

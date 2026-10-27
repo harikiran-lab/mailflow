@@ -25,5 +25,6 @@ export async function getUserAiAccess(userId) {
 
 // The instance switches for the writing assistant and summaries, which also cover AI actions.
 export function aiFeatureEnabled(status, feature) {
+  if (feature === 'flow' || feature === 'inbox') return status?.features?.[feature] === true;
   return AI_FEATURES.includes(feature) && status?.features?.[feature] !== false;
 }

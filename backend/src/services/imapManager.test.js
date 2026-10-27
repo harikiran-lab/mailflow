@@ -34,6 +34,20 @@ const account = (imap_host, oauth_provider = null) => ({ imap_host, oauth_provid
 const resolved = { host: '127.0.0.1', servername: null };
 const baseAccount = { imap_host: '127.0.0.1', imap_port: 1143, imap_tls: true, imap_skip_tls_verify: false, auth_user: 'user', auth_pass: 'enc' };
 
+describe('Sent analysis notifications', () => {
+  it('hands a locally saved Sent record to integration hooks after persistence', async () => {
+    query.mockReset().mockResolvedValue({ rows: [] });
+    const hook = vi.spyOn(pluginRegistry, 'runHook').mockResolvedValue([]);
+    const account = { id: 'sent-account', user_id: 'owner' };
+    try {
+      const manager = Object.create(ImapManager.prototype);
+      await manager.upsertSentMessageRecord(account, 'Sent', 17, { subject: 'Reply', snippet: 'I reviewed it.' });
+      expect(query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO messages'), expect.any(Array));
+      expect(hook).toHaveBeenCalledWith('mailIngested', { account, folder: 'Sent', sentChanged: { uid: 17 } });
+    } finally { hook.mockRestore(); }
+  });
+});
+
 describe('live reply draft lookup', () => {
   it('confirms only the selected UID over an idle pooled connection without another login or search', async () => {
     const account = { ...baseAccount, id: 'reply-confirm-pooled', user_id: 'user-1', email_address: 'me@example.test' };

@@ -17,9 +17,9 @@ The workflow publishes images using the repository's automatic GITHUB_TOKEN; it 
 
 ## Which custom features are included?
 
-The latest images contain everything committed to `main`, including the NoteTrace integration. The additional Flow AI assistant and AI Inbox implementation currently live on `feat/flow-ai`; they are not automatically copied into `main` by this workflow.
+The latest images contain the updated MailFlow application together with the NoteTrace integration, Flow AI assistant, AI Inbox, optional embeddings, scoped API/MCP access, and signed webhooks. Flow AI has been integrated into `main`, so subsequent latest builds retain these features alongside upstream updates. See [Flow AI setup](flow-ai.md) to enable the optional features.
 
-The existing [Flow AI image workflow](flow-ai-images.md) and `:flow-ai` images are separate. To use the newer application together with those feature-branch changes, first integrate and validate them on the branch you intend to build. Selecting `:latest` does not carry over code that exists only on `feat/flow-ai`.
+The existing [Flow AI image workflow](flow-ai-images.md) and `:flow-ai` images remain available for feature-branch builds. Use `:latest` for the integrated `main` build. Updating the image does not reset existing Flow AI configuration; new installations still need to enable the relevant features and plugin.
 
 ## Update an existing Compose deployment
 

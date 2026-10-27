@@ -6,6 +6,7 @@ import { createRequestSignal, parseJson, readLimited, readSseData, sanitizeText 
 import { completeCodexText, streamCodexResponses } from './openaiCodexResponses.js';
 import { getCodexAccess, getCodexStatus } from './openaiCodexAuth.js';
 import { aiEnabledForNewUser, setAiEnabledForNewUser } from './aiNewUsers.js';
+import { consumeToolStream, codexToolTurn } from './aiToolTransport.js';
 
 export const AI_PROVIDER_API_KEY = 'api-key';
 export const AI_PROVIDER_CHATGPT = 'chatgpt';
@@ -23,11 +24,12 @@ export class AiProviderError extends Error {
   // `expose` marks an error whose message is safe to show the caller (already
   // secret-redacted and sanitized) — provider-originated failures set it so the
   // admin sees the real reason instead of a generic message, even on a 5xx.
-  constructor(message, { status = 503, expose = false } = {}) {
+  constructor(message, { status = 503, expose = false, code } = {}) {
     super(message);
     this.name = 'AiProviderError';
     this.status = status;
     this.expose = expose;
+    if(code)this.code = code;
   }
 }
 
@@ -60,6 +62,8 @@ export function normalizeAiConfig(raw = {}) {
     features: {
       compose: raw.features?.compose !== false,
       summarize: raw.features?.summarize !== false,
+      ...(Object.hasOwn(raw.features || {}, 'flow') ? { flow: raw.features.flow === true } : {}),
+      ...(Object.hasOwn(raw.features || {}, 'inbox') ? { inbox: raw.features.inbox === true } : {}),
     },
   };
 }
@@ -196,6 +200,11 @@ export function createAiProvider({
       : (existing?.apiKeyConfig.apiKey || null);
     const config = normalizeAiConfig({
       ...input,
+      // Flow switches are managed separately; an older provider form must not overwrite them.
+      features: { ...input.features,
+        ...(Object.hasOwn(existing?.features || {}, 'flow') ? { flow: existing.features.flow } : {}),
+        ...(Object.hasOwn(existing?.features || {}, 'inbox') ? { inbox: existing.features.inbox } : {}),
+      },
       apiKeyConfig: { ...incomingApi, apiKey: storedKey },
     });
 
@@ -252,26 +261,48 @@ export function createAiProvider({
     return headers;
   }
 
-  async function completeApiKey(config, messages, { signal, maxTokens, allowEmpty = false } = {}) {
+  const structuredFormats=new Map();
+  async function completeApiKey(config, messages, { signal, maxTokens, allowEmpty = false, timeoutMs, jsonSchema, temperature } = {}, formatMode) {
+    const formatKey=config.apiKeyConfig.baseUrl+'\n'+config.apiKeyConfig.model;
+    const cachedFormat=structuredFormats.get(formatKey);
+    formatMode??=jsonSchema?(cachedFormat?.expires>Date.now()?cachedFormat.mode:2):0;
     const apiKey = apiKeyCredential(config);
     const body = {
       model: config.apiKeyConfig.model,
       messages,
       ...(Number.isFinite(maxTokens) ? { max_tokens: maxTokens } : {}),
+      ...(Number.isFinite(temperature) ? { temperature } : {}),
+      ...(jsonSchema&&formatMode ? {response_format:formatMode===2?{type:'json_schema',json_schema:{name:'mailflow_inbox',strict:true,schema:jsonSchema}}:{type:'json_object'}} : {}),
       stream: false,
     };
     const request = await openProviderRequest(fetchFn, `${config.apiKeyConfig.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: apiKeyHeaders(apiKey),
       body: JSON.stringify(body),
-    }, { signal });
+    }, { signal, timeoutMs });
     try {
       const { response } = request;
       const text = await readLimited(response, response.ok ? JSON_BODY_LIMIT_BYTES : ERROR_BODY_LIMIT_BYTES);
-      if (!response.ok) throw providerError(response.status, text, [apiKey]);
+      if (!response.ok) {
+        // Older compatible servers may support JSON mode but not schemas, or
+        // neither. Fall back only for an explicit format capability rejection.
+        if(jsonSchema&&formatMode&&[400,422,501].includes(response.status)&&/response_format|json_schema|json_object|structured.output|grammar/i.test(text)&&/unsupported|not.support|not.implemented|unrecognized|unknown|not.allowed|not.permitted/i.test(text)){
+          if(structuredFormats.size>=100)structuredFormats.delete(structuredFormats.keys().next().value);
+          structuredFormats.set(formatKey,{mode:formatMode-1,expires:Date.now()+3600000});
+          request.cleanup();
+          return completeApiKey(config,messages,{signal,maxTokens,allowEmpty,timeoutMs,jsonSchema,temperature},formatMode-1);
+        }
+        throw providerError(response.status, text, [apiKey]);
+      }
       const parsed = parseJson(text);
       const choice = parsed?.choices?.[0];
       const content = choice?.message?.content;
+      if(choice?.finish_reason==='length'&&!allowEmpty){
+        const empty=typeof content!=='string'||!content.trim();
+        const generated=parsed?.usage?.completion_tokens;
+        throw new AiProviderError(`${empty?'AI provider returned an empty completion (finish_reason: length).':'AI provider response was cut off (finish_reason: length).'} Its output limit was reached${Number.isFinite(generated)?` after ${generated} completion tokens`:''}${Number.isFinite(maxTokens)?` (requested budget: ${maxTokens})`:''}; reasoning also uses this budget.`,{status:502,expose:true,code:'AI_OUTPUT_LIMIT'});
+      }
+      if(typeof content==='string'&&!content.trim()&&!allowEmpty)throw new AiProviderError('AI provider returned an empty answer. Reasoning text is not a final response.',{status:502,expose:true,code:'AI_EMPTY_ANSWER'});
       if (typeof content === 'string') return content;
       // A reasoning model — or any turn truncated by max_tokens — can return a
       // null `content`: the output went entirely to reasoning, or the budget was
@@ -284,7 +315,7 @@ export function createAiProvider({
         const reason = typeof choice.finish_reason === 'string' ? choice.finish_reason : 'unknown';
         throw new AiProviderError(
           `AI provider returned an empty completion (finish_reason: ${reason})`,
-          { status: 502, expose: true },
+          { status: 502, expose: true, code: 'AI_EMPTY_ANSWER' },
         );
       }
       throw new AiProviderError('AI provider returned an invalid completion', { status: 502, expose: true });
@@ -336,6 +367,26 @@ export function createAiProvider({
       credentials = await getCodexAccessFn({ forceRefresh: true });
       return completeCodexTextFn(codexRequest(config, messages, options, credentials));
     }
+  }
+
+  async function toolTurn(messages, tools, { signal, onDelta } = {}) {
+    const config = await requireSelectedConfig();
+    if (config.provider === AI_PROVIDER_CHATGPT) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const credentials = await getCodexAccessFn(attempt ? { forceRefresh: true } : {});
+        try { return await codexToolTurn({ credentials, model: config.chatgptConfig.model, messages, tools, signal, onDelta, fetchFn }); }
+        catch (error) { if (attempt || error.status !== 401) throw error; }
+      }
+    }
+    const apiKey = apiKeyCredential(config);
+    const request = await openProviderRequest(fetchFn, `${config.apiKeyConfig.baseUrl}/chat/completions`, {
+      method: 'POST', headers: apiKeyHeaders(apiKey),
+      body: JSON.stringify({ model: config.apiKeyConfig.model, messages, tools, stream: true }),
+    }, { signal, timeoutMs: 120000 });
+    try {
+      if (!request.response.ok) throw providerError(request.response.status, await readLimited(request.response, ERROR_BODY_LIMIT_BYTES), [apiKey]);
+      return await consumeToolStream(request.response, { signal: request.signal, onDelta });
+    } finally { request.cleanup(); }
   }
 
   async function* streamChat(messages, options = {}) {
@@ -410,6 +461,7 @@ export function createAiProvider({
     testAiProvider,
     streamChat,
     completeText,
+    toolTurn,
   };
 }
 
@@ -424,3 +476,4 @@ export const getAiStatus = defaultProvider.getAiStatus;
 export const testAiProvider = defaultProvider.testAiProvider;
 export const streamChat = defaultProvider.streamChat;
 export const completeText = defaultProvider.completeText;
+export const toolTurn = defaultProvider.toolTurn;

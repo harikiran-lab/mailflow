@@ -115,6 +115,13 @@ const dir = dirname(fileURLToPath(import.meta.url));
 // Two locales sharing a value is only allowed if both appear in the same group.
 // Any unlisted pair will still fail.
 const SAME_VALUE_ALLOWED = {
+  'flow.action.category': [['cs', 'de']], // Kategorie
+  'flow.category': [['cs', 'de']], // Kategorie
+  'flow.copy': [['es', 'ptBR']], // Copiar
+  'flow.destination': [['en', 'fr']], // Destination
+  'flow.never': [['es', 'ptBR']], // Nunca
+  'flow.to': [['es', 'ptBR']], // Para
+  'flow.view': [['es', 'ptBR']], // Ver
   'notetrace.name': 'any', // NoteTrace is a product name.
   'notetrace.connected': [['es', 'ptBR']], // Natural shared Spanish/Portuguese wording.
   'notetrace.disconnect': [['es', 'ptBR']],
@@ -700,6 +707,7 @@ const I18N_ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
 // Plain strings that are intentionally NOT translated (technical terms,
 // brand names, format placeholders). Add with a comment explaining why.
 const HARDCODED_OK = new Set([
+  'Flow AI', 'REST', // Brand and technical protocol name
   // CSS/DOM placeholder for a variable-name input field — not a sentence
   'value',
   // Tooltip label for a rich-text editor colour input — purely visual affordance,
@@ -742,7 +750,7 @@ function looksLikeUserText(str) {
 }
 
 function scanHardcodedStrings() {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const violations = [];
 
   function walk(d) {
@@ -817,7 +825,7 @@ function baseKey(key) {
 }
 
 function loadSourceText() {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const out = [];
   function walk(d) {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
@@ -835,7 +843,7 @@ function loadSourceText() {
 }
 
 function loadLiteralSourceTranslationKeys(prefix) {
-  const srcRoot = resolve(dir, '../..');
+  const srcRoot = resolve(dir, '..'); // Only src/, never node_modules or build output.
   const keys = new Set();
   const literalTranslationCall = /(?<![\w$.])t\(\s*['"]([^'"]+)['"]/g;
 

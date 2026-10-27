@@ -21,7 +21,7 @@ import MessageList from './MessageList.jsx';
 import ReadingPane from './ReadingPane.jsx';
 import NotificationToasts from './NotificationToasts.jsx';
 import CommandPalette from './CommandPalette.jsx';
-import { usePluginSlot, PluginRuntime } from '../plugins/PluginSlot.jsx';
+import { usePluginSlot, PluginRuntime, PluginSlot } from '../plugins/PluginSlot.jsx';
 import { takePendingDeepLink, watchPendingDeepLink } from '../utils/pendingDeepLink.js';
 import { scheduledFeed } from '../utils/scheduledFeed.js';
 import { noticeToast, scheduledLinkId } from '../utils/scheduledView.js';
@@ -56,7 +56,7 @@ export default function MailApp() {
     mobileSidebarOpen, setMobileSidebarOpen, addNotification,
     fontSize, showAppBadge, showFaviconBadge,
     sidebarWidth, setSidebarWidth, setIsSidebarResizing,
-    showContacts, setTodoistConnected,
+    showContacts, pluginView, setTodoistConnected,
     accounts, rightSidebarWidth, setRightSidebarWidth, isRightSidebarResizing, setIsRightSidebarResizing,
     rightSidebarHidden, toggleRightSidebarHidden,
   } = useStore();
@@ -168,6 +168,8 @@ export default function MailApp() {
   // infrastructure below keys off whether any content exists, not off any specific feature.
   const rightSidebarCtx = { accounts, selectedAccountId, onCollapse: toggleRightSidebarHidden, toggleHint: rightSidebarToggleHint };
   const rightSidebarProviders = usePluginSlot('right-sidebar', rightSidebarCtx);
+  const pluginViews = usePluginSlot('main-view', { view: pluginView });
+  useEffect(() => { if (pluginView && !pluginViews.length) useStore.getState().setPluginView(null); }, [pluginView, pluginViews.length]);
   const rightSidebarContent = rightSidebarProviders.length ? rightSidebarProviders[0].render(rightSidebarCtx) : null;
   const rightSidebarApplicable = !isMobile && currentLayout.direction === 'row' && rightSidebarContent != null;
 
@@ -517,6 +519,7 @@ export default function MailApp() {
 
   useEffect(() => {
     window.__mailflowHandleAndroidBack = () => {
+      if (!window.dispatchEvent(new CustomEvent('mailflow:before-back', { cancelable: true }))) return true;
       if (composingRef.current) {
         useStore.getState().closeCompose();
         return true;
@@ -827,13 +830,14 @@ export default function MailApp() {
             <Sidebar />
           </div>
           {/* Keep all three mounted so scroll/state survive navigation. */}
-          <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: showContacts ? 'flex' : 'none' }}>
+          {pluginView && <PluginSlot name="main-view" ctx={{ view: pluginView }} />}
+          <div style={{ flex: 1, overflow: 'hidden', height: '100%', display: showContacts && !pluginView ? 'flex' : 'none' }}>
             <Suspense fallback={lazyFallback}><ContactsPage /></Suspense>
           </div>
-          <div style={{ flex: 1, display: !showContacts && !selectedMessageId ? 'flex' : 'none', overflow: 'hidden', height: '100%' }}>
+          <div style={{ flex: 1, display: !pluginView && !showContacts && !selectedMessageId ? 'flex' : 'none', overflow: 'hidden', height: '100%' }}>
             <MessageList />
           </div>
-          <div style={{ flex: 1, display: !showContacts && selectedMessageId ? 'flex' : 'none', overflow: 'hidden', height: '100%' }}>
+          <div style={{ flex: 1, display: !pluginView && !showContacts && selectedMessageId ? 'flex' : 'none', overflow: 'hidden', height: '100%' }}>
             <ReadingPane />
           </div>
         </>
@@ -861,10 +865,11 @@ export default function MailApp() {
             paddingTop: 'var(--sat)',
           }}>
             {/* Keep all three mounted so scroll/state survive navigation. */}
-            <div style={{ display: showContacts ? 'flex' : 'none', flex: 1, minWidth: 0, overflow: 'hidden', height: '100%' }}>
+            {pluginView && <PluginSlot name="main-view" ctx={{ view: pluginView }} />}
+            <div style={{ display: showContacts && !pluginView ? 'flex' : 'none', flex: 1, minWidth: 0, overflow: 'hidden', height: '100%' }}>
               <Suspense fallback={lazyFallback}><ContactsPage /></Suspense>
             </div>
-            <div style={{ display: showContacts ? 'none' : 'flex', flex: 1, minWidth: 0, overflow: 'hidden', height: '100%', flexDirection: currentLayout.direction }}>
+            <div style={{ display: showContacts || pluginView ? 'none' : 'flex', flex: 1, minWidth: 0, overflow: 'hidden', height: '100%', flexDirection: currentLayout.direction }}>
               <MessageList />
               {currentLayout.direction === 'row' && (
                 <div
