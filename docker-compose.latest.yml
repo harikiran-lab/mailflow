@@ -1,0 +1,7 @@
+# Images from this fork's main branch; combine with docker-compose.ghcr.yml.
+# This override intentionally selects latest, independently of the Flow AI tag.
+services:
+  backend:
+    image: ghcr.io/${MAILFLOW_IMAGE_OWNER:-harikiran-lab}/mailflow-backend:${MAILFLOW_LATEST_TAG:-latest}
+  frontend:
+    image: ghcr.io/${MAILFLOW_IMAGE_OWNER:-harikiran-lab}/mailflow-frontend:${MAILFLOW_LATEST_TAG:-latest}

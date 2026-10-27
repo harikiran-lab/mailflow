@@ -13,6 +13,10 @@
   <a href="https://mailflow.sh/#roadmap">Roadmap</a>
 </p>
 
+## Fork Docker images
+
+Automatic builds from this fork's main branch are available under the `latest` tag. See [latest image builds and deployment](docs/latest-images.md). The separate [Flow AI images](docs/flow-ai-images.md) build the feature branch.
+
 ## Licensing
 
 Licensing and paid options:
