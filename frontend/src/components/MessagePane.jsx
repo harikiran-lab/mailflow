@@ -35,7 +35,7 @@ import { PluginSlot } from '../plugins/PluginSlot.jsx';
 import { useAiActions } from '../hooks/useAiActions.js';
 import AttachmentStrip from './AttachmentStrip.jsx';
 import {
-  ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice,
+  ActionBtn, MessageTools, ReplySplitButton, RemoteImagesNotice, UnsubscribeNotice, TOUCH_MIN,
   ForwardIcon, ArchiveIcon, MoveIcon, SpamIcon, HamIcon, TodoistIcon, ReadStateIcon, HeadersIcon,
   DownloadIcon, PrintIcon, DarkToggleIcon, StarIcon, TrashIcon, useShortcutTitle,
 } from './MessageActions.jsx';
@@ -1392,7 +1392,8 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
       )}
 
       {/* Toolbar, always pinned at top, never scrolls. The buttons are MessageActions', which every
-          message of a conversation shares (#650). On a phone each is a 44 px touch target, edge to edge.
+          message of a conversation shares (#650). On a phone each is a 44 px touch target, edge to edge,
+          giving way down to TOUCH_MIN when a larger font size leaves the row too narrow.
           A labeled group of plain buttons, each its own Tab stop, rather than role="toolbar", which
           promises arrow-key movement between them that the pane has never had. */}
       <div role="group" aria-label={t('shortcuts.groups.messageActions')} style={{
@@ -1418,7 +1419,7 @@ export default function MessagePane({ windowMessageId = null, onWindowClose = nu
         </ActionBtn>
 
         {/* Move to folder */}
-        <div style={{ position: 'relative' }} ref={moveBtnRef}>
+        <div style={{ position: 'relative', display: 'flex', ...(isMobile ? { minWidth: TOUCH_MIN } : {}) }} ref={moveBtnRef}>
           <ActionBtn onClick={handleOpenMovePicker} label={t('contextMenu.moveToFolder')} touch={isMobile} popup expanded={showMovePicker}>
             <MoveIcon />
           </ActionBtn>
