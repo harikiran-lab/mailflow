@@ -1,6 +1,6 @@
 # Flow AI and developer integrations
 
-For manual image builds and server update commands, see [Build and deploy Docker images](flow-ai-images.md).
+For integrated builds of the updated application with Flow AI, use the fork's [`:latest` images](latest-images.md). For manual feature-branch image builds, see [Build and deploy Docker images](flow-ai-images.md).
 
 Flow AI adds a floating mailbox assistant and an opt-in AI Inbox. Questions use scoped mailbox search and bounded email excerpts, with links back to source messages. Organization and plain-text reply drafts appear as expiring previews; applying one requires a separate user click. Flow cannot send mail, delete messages, unsubscribe, or create autonomous rules. Email content and model tool arguments remain untrusted inputs checked on the server.
 
